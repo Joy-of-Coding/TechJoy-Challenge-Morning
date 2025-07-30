@@ -43,4 +43,16 @@ Completed and deployed in under 4 days.
 - Followed the SLC principle: delivered a real, usable, lovable product
 - Built by vibing — no rigid specs, just shared creative energy
 - Emphasized iteration, simplicity, and joy in coding
-- Explored h
+- Explored how tech can **transform** teams and ideas when built together
+
+---
+
+## Contributors
+
+-Ki W. (@kiwi-223)
+-Eric C (@EricCarverCoding in discord, @EricCarverInWI Github)
+-Russell C (@russllist)
+-Adrian C (@acarvjl in discord, acarvjl Github) git
+---
+
+> “Transform Together” by keeping it **Simple**, making it **Lovable**, and finishing it **Complete**.
