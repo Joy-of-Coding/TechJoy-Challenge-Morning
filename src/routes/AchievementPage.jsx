@@ -23,10 +23,22 @@ ChartJS.register(
   Legend
 );
 
-const AchievementPage = ({ entries = [], physicalEntries = [], mentalEntries = [] }) => {
+const AchievementPage = ({ entries = [] }) => {
   const [timeframe, setTimeframe] = useState("week"); // week, month, year
   const [achievementData, setAchievementData] = useState({});
   const [selectedCategory, setSelectedCategory] = useState("coding"); // coding, physical, mental
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Function to get data from localStorage
+  const getDataFromStorage = (key) => {
+    try {
+      const stored = localStorage.getItem(key);
+      return stored ? JSON.parse(stored) : [];
+    } catch (e) {
+      console.error(`Error reading ${key}:`, e);
+      return [];
+    }
+  };
 
   // Calculate achievement data based on timeframe
   useEffect(() => {
@@ -55,10 +67,10 @@ const AchievementPage = ({ entries = [], physicalEntries = [], mentalEntries = [
           currentEntries = entries;
           break;
         case "physical":
-          currentEntries = physicalEntries;
+          currentEntries = getDataFromStorage("habit-hive-physical-entries");
           break;
         case "mental":
-          currentEntries = mentalEntries;
+          currentEntries = getDataFromStorage("habit-hive-mental-entries");
           break;
         default:
           currentEntries = entries;
@@ -68,6 +80,12 @@ const AchievementPage = ({ entries = [], physicalEntries = [], mentalEntries = [
       const filteredEntries = currentEntries.filter(entry => {
         const entryDate = new Date(entry.date);
         return entryDate >= startDate && entryDate <= now;
+      });
+
+      console.log(`Achievement Page - ${selectedCategory} category:`, {
+        totalEntries: currentEntries.length,
+        filteredEntries: filteredEntries.length,
+        sampleEntry: currentEntries[0]
       });
 
       // Calculate statistics based on category
@@ -137,7 +155,26 @@ const AchievementPage = ({ entries = [], physicalEntries = [], mentalEntries = [
     };
 
     calculateAchievements();
-  }, [entries, physicalEntries, mentalEntries, timeframe, selectedCategory]);
+  }, [entries, timeframe, selectedCategory, refreshTrigger]);
+
+  // Listen for localStorage changes and custom events
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setRefreshTrigger(prev => prev + 1);
+    };
+
+    const handleCustomEvent = () => {
+      setRefreshTrigger(prev => prev + 1);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('habitDataUpdated', handleCustomEvent);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('habitDataUpdated', handleCustomEvent);
+    };
+  }, []);
 
   // Chart configuration
   const chartOptions = {
@@ -227,6 +264,12 @@ const AchievementPage = ({ entries = [], physicalEntries = [], mentalEntries = [
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-4">🏆 Achievement Center</h1>
           <p className="text-white text-lg">Track your progress and celebrate your wins!</p>
+          <button
+            onClick={() => setRefreshTrigger(prev => prev + 1)}
+            className="mt-4 bg-yellow-400 text-black px-4 py-2 rounded-lg hover:bg-yellow-300 transition-colors duration-200"
+          >
+            🔄 Refresh Data
+          </button>
         </div>
 
         {/* Category and Timeframe Selectors */}

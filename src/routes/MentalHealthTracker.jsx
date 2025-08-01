@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useLocalStorage } from "../hooks/useLocalStorage";
 
-const MentalHealthTracker = ({ entries = [], setEntries }) => {
+const MentalHealthTracker = () => {
+  const [entries, setEntries] = useLocalStorage("habit-hive-mental-entries", []);
   const [activity, setActivity] = useState("");
   const [duration, setDuration] = useState("");
   const [mood, setMood] = useState("");

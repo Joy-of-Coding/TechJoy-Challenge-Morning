@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useLocalStorage } from "../hooks/useLocalStorage";
 
-const PhysicalTracker = ({ entries = [], setEntries }) => {
+const PhysicalTracker = () => {
+  const [entries, setEntries] = useLocalStorage("habit-hive-physical-entries", []);
   const [activity, setActivity] = useState("");
   const [duration, setDuration] = useState("");
 
