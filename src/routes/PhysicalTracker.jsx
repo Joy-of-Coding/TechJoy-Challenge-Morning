@@ -2,7 +2,10 @@ import { useState } from "react";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 
 const PhysicalTracker = () => {
-  const [entries, setEntries] = useLocalStorage("habit-hive-physical-entries", []);
+  const [entries, setEntries] = useLocalStorage(
+    "habit-hive-physical-entries",
+    [],
+  );
   const [activity, setActivity] = useState("");
   const [duration, setDuration] = useState("");
 
@@ -49,27 +52,37 @@ const PhysicalTracker = () => {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-4">💪 Physical Health Tracker</h1>
-          <p className="text-white text-lg">Track your physical activities and stay healthy!</p>
+          <h1 className="text-4xl font-bold mb-4">
+            💪 Physical Health Tracker
+          </h1>
+          <p className="text-white text-lg">
+            Track your physical activities and stay healthy!
+          </p>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-gray-900 rounded-lg p-6 border border-yellow-400">
             <div className="text-center">
-              <div className="text-3xl font-bold text-yellow-400">{totalDuration}</div>
+              <div className="text-3xl font-bold text-yellow-400">
+                {totalDuration}
+              </div>
               <div className="text-white">Total Hours</div>
             </div>
           </div>
           <div className="bg-gray-900 rounded-lg p-6 border border-yellow-400">
             <div className="text-center">
-              <div className="text-3xl font-bold text-yellow-400">{totalActivities}</div>
+              <div className="text-3xl font-bold text-yellow-400">
+                {totalActivities}
+              </div>
               <div className="text-white">Activities</div>
             </div>
           </div>
           <div className="bg-gray-900 rounded-lg p-6 border border-yellow-400">
             <div className="text-center">
-              <div className="text-3xl font-bold text-yellow-400">{averageDuration}</div>
+              <div className="text-3xl font-bold text-yellow-400">
+                {averageDuration}
+              </div>
               <div className="text-white">Avg Hours/Activity</div>
             </div>
           </div>
@@ -130,20 +143,34 @@ const PhysicalTracker = () => {
             </button>
           </div>
           {entries.length === 0 ? (
-            <p className="text-white text-center py-8">No activities logged yet. Start tracking your physical health!</p>
+            <p className="text-white text-center py-8">
+              No activities logged yet. Start tracking your physical health!
+            </p>
           ) : (
             <div className="space-y-3">
-              {entries.slice(-10).reverse().map((entry, index) => (
-                <div key={index} className="bg-gray-800 rounded-lg p-4 border border-yellow-400/30">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <div className="text-yellow-400 font-semibold">{entry.activity}</div>
-                      <div className="text-white text-sm">{entry.date} at {entry.time}</div>
+              {entries
+                .slice(-10)
+                .reverse()
+                .map((entry, index) => (
+                  <div
+                    key={index}
+                    className="bg-gray-800 rounded-lg p-4 border border-yellow-400/30"
+                  >
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <div className="text-yellow-400 font-semibold">
+                          {entry.activity}
+                        </div>
+                        <div className="text-white text-sm">
+                          {entry.date} at {entry.time}
+                        </div>
+                      </div>
+                      <div className="text-yellow-400 font-bold">
+                        {entry.duration}h
+                      </div>
                     </div>
-                    <div className="text-yellow-400 font-bold">{entry.duration}h</div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
           )}
         </div>

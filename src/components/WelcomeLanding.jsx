@@ -16,8 +16,9 @@ const WelcomeLanding = () => {
             Welcome to Habit Hive
           </h1>
           <p className="text-xl text-yellow-200 mb-8 max-w-3xl mx-auto">
-            Transform your daily routines into a beautiful mosaic of progress. 
-            Track your habits, build consistency, and watch your goals come to life.
+            Transform your daily routines into a beautiful mosaic of progress.
+            Track your habits, build consistency, and watch your goals come to
+            life.
           </p>
           <div className="flex justify-center gap-4 mb-8">
             <Link
@@ -43,18 +44,21 @@ const WelcomeLanding = () => {
           <div className="grid md:grid-cols-2 gap-8 items-center">
             <div>
               <p className="text-lg text-yellow-200 mb-4">
-                Habit Hive is your personal habit tracking sanctuary where every action you take 
-                reveals a piece of a beautiful mosaic. Think of it as building your own digital 
-                beehive - each habit you complete adds another honeycomb cell to your progress.
+                Habit Hive is your personal habit tracking sanctuary where every
+                action you take reveals a piece of a beautiful mosaic. Think of
+                it as building your own digital beehive - each habit you
+                complete adds another honeycomb cell to your progress.
               </p>
               <p className="text-lg text-yellow-200 mb-4">
-                Our unique MosaicReveal system transforms your daily routines into visual art. 
-                As you complete your habits, squares in your personal mosaic gradually reveal 
-                stunning images, making progress tracking both motivating and beautiful.
+                Our unique MosaicReveal system transforms your daily routines
+                into visual art. As you complete your habits, squares in your
+                personal mosaic gradually reveal stunning images, making
+                progress tracking both motivating and beautiful.
               </p>
               <p className="text-lg text-yellow-200">
-                Track three key areas of your life: Coding, Physical Health, and Mental Health. 
-                Each category has its own mosaic that fills up as you reach your weekly goals.
+                Track three key areas of your life: Coding, Physical Health, and
+                Mental Health. Each category has its own mosaic that fills up as
+                you reach your weekly goals.
               </p>
             </div>
             <div className="flex justify-center">
@@ -76,10 +80,12 @@ const WelcomeLanding = () => {
             {/* Coding Category */}
             <div className="bg-black/50 border-2 border-yellow-400 rounded-lg p-6 text-center">
               <div className="text-4xl mb-4">💻</div>
-              <h3 className="text-2xl font-bold mb-3 text-yellow-400">Coding</h3>
+              <h3 className="text-2xl font-bold mb-3 text-yellow-400">
+                Coding
+              </h3>
               <p className="text-yellow-200 mb-4">
-                Track your programming sessions and watch your skills grow. 
-                Log hours spent coding, debugging, or learning new technologies.
+                Track your programming sessions and watch your skills grow. Log
+                hours spent coding, debugging, or learning new technologies.
               </p>
               <div className="text-sm text-yellow-300 mb-4">
                 <strong>Goal:</strong> 16 sessions per week
@@ -102,10 +108,13 @@ const WelcomeLanding = () => {
             {/* Physical Health Category */}
             <div className="bg-black/50 border-2 border-yellow-400 rounded-lg p-6 text-center">
               <div className="text-4xl mb-4">💪</div>
-              <h3 className="text-2xl font-bold mb-3 text-yellow-400">Physical Health</h3>
+              <h3 className="text-2xl font-bold mb-3 text-yellow-400">
+                Physical Health
+              </h3>
               <p className="text-yellow-200 mb-4">
-                Monitor your fitness journey and physical activities. 
-                From workouts to walks, every movement counts toward your health goals.
+                Monitor your fitness journey and physical activities. From
+                workouts to walks, every movement counts toward your health
+                goals.
               </p>
               <div className="text-sm text-yellow-300 mb-4">
                 <strong>Goal:</strong> 16 activities per week
@@ -128,10 +137,12 @@ const WelcomeLanding = () => {
             {/* Mental Health Category */}
             <div className="bg-black/50 border-2 border-yellow-400 rounded-lg p-6 text-center">
               <div className="text-4xl mb-4">🧠</div>
-              <h3 className="text-2xl font-bold mb-3 text-yellow-400">Mental Health</h3>
+              <h3 className="text-2xl font-bold mb-3 text-yellow-400">
+                Mental Health
+              </h3>
               <p className="text-yellow-200 mb-4">
-                Nurture your mind and emotional well-being. 
-                Track meditation, journaling, therapy sessions, or any self-care activities.
+                Nurture your mind and emotional well-being. Track meditation,
+                journaling, therapy sessions, or any self-care activities.
               </p>
               <div className="text-sm text-yellow-300 mb-4">
                 <strong>Goal:</strong> 16 activities per week
@@ -161,26 +172,32 @@ const WelcomeLanding = () => {
           <div className="grid md:grid-cols-3 gap-6">
             <div className="text-center">
               <div className="text-4xl mb-4">📝</div>
-              <h3 className="text-xl font-bold mb-2 text-yellow-400">1. Log Your Activities</h3>
+              <h3 className="text-xl font-bold mb-2 text-yellow-400">
+                1. Log Your Activities
+              </h3>
               <p className="text-yellow-200">
-                Visit any category page and log your daily activities. 
-                Each entry gets timestamped and stored securely.
+                Visit any category page and log your daily activities. Each
+                entry gets timestamped and stored securely.
               </p>
             </div>
             <div className="text-center">
               <div className="text-4xl mb-4">🎯</div>
-              <h3 className="text-xl font-bold mb-2 text-yellow-400">2. Watch Progress Unfold</h3>
+              <h3 className="text-xl font-bold mb-2 text-yellow-400">
+                2. Watch Progress Unfold
+              </h3>
               <p className="text-yellow-200">
-                As you complete activities, squares in your mosaic gradually reveal 
-                beautiful images. See your progress come to life!
+                As you complete activities, squares in your mosaic gradually
+                reveal beautiful images. See your progress come to life!
               </p>
             </div>
             <div className="text-center">
               <div className="text-4xl mb-4">🏆</div>
-              <h3 className="text-xl font-bold mb-2 text-yellow-400">3. Achieve Your Goals</h3>
+              <h3 className="text-xl font-bold mb-2 text-yellow-400">
+                3. Achieve Your Goals
+              </h3>
               <p className="text-yellow-200">
-                Reach your weekly goals and complete your mosaics. 
-                Celebrate your consistency and build lasting habits.
+                Reach your weekly goals and complete your mosaics. Celebrate
+                your consistency and build lasting habits.
               </p>
             </div>
           </div>
@@ -192,7 +209,8 @@ const WelcomeLanding = () => {
             Ready to Build Your Hive?
           </h2>
           <p className="text-lg text-yellow-200 mb-6">
-            Start your habit tracking journey today and watch your progress blossom into something beautiful.
+            Start your habit tracking journey today and watch your progress
+            blossom into something beautiful.
           </p>
           <Link
             to="/coding"
@@ -206,4 +224,4 @@ const WelcomeLanding = () => {
   );
 };
 
-export default WelcomeLanding; 
+export default WelcomeLanding;

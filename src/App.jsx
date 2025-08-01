@@ -27,7 +27,10 @@ function App() {
               />
               <Route path="/physical" element={<PhysicalTracker />} />
               <Route path="/mental" element={<MentalHealthTracker />} />
-              <Route path="/achievements" element={<AchievementPage entries={entries} />} />
+              <Route
+                path="/achievements"
+                element={<AchievementPage entries={entries} />}
+              />
             </Routes>
           </main>
         </div>

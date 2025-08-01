@@ -2,7 +2,10 @@ import { useState } from "react";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 
 const MentalHealthTracker = () => {
-  const [entries, setEntries] = useLocalStorage("habit-hive-mental-entries", []);
+  const [entries, setEntries] = useLocalStorage(
+    "habit-hive-mental-entries",
+    [],
+  );
   const [activity, setActivity] = useState("");
   const [duration, setDuration] = useState("");
   const [mood, setMood] = useState("");
@@ -50,15 +53,19 @@ const MentalHealthTracker = () => {
   // Calculate average mood
   const moodScores = {
     "Very Happy": 5,
-    "Happy": 4,
-    "Neutral": 3,
-    "Sad": 2,
-    "Very Sad": 1
+    Happy: 4,
+    Neutral: 3,
+    Sad: 2,
+    "Very Sad": 1,
   };
-  
-  const averageMoodScore = totalActivities > 0 
-    ? (entries.reduce((sum, entry) => sum + moodScores[entry.mood], 0) / totalActivities).toFixed(1)
-    : 0;
+
+  const averageMoodScore =
+    totalActivities > 0
+      ? (
+          entries.reduce((sum, entry) => sum + moodScores[entry.mood], 0) /
+          totalActivities
+        ).toFixed(1)
+      : 0;
 
   return (
     <div className="min-h-screen text-yellow-400 font-montserrat p-6">
@@ -66,32 +73,42 @@ const MentalHealthTracker = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-4">🧠 Mental Health Tracker</h1>
-          <p className="text-white text-lg">Track your mental wellness activities and mood!</p>
+          <p className="text-white text-lg">
+            Track your mental wellness activities and mood!
+          </p>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-gray-900 rounded-lg p-6 border border-yellow-400">
             <div className="text-center">
-              <div className="text-3xl font-bold text-yellow-400">{totalDuration}</div>
+              <div className="text-3xl font-bold text-yellow-400">
+                {totalDuration}
+              </div>
               <div className="text-white">Total Hours</div>
             </div>
           </div>
           <div className="bg-gray-900 rounded-lg p-6 border border-yellow-400">
             <div className="text-center">
-              <div className="text-3xl font-bold text-yellow-400">{totalActivities}</div>
+              <div className="text-3xl font-bold text-yellow-400">
+                {totalActivities}
+              </div>
               <div className="text-white">Activities</div>
             </div>
           </div>
           <div className="bg-gray-900 rounded-lg p-6 border border-yellow-400">
             <div className="text-center">
-              <div className="text-3xl font-bold text-yellow-400">{averageDuration}</div>
+              <div className="text-3xl font-bold text-yellow-400">
+                {averageDuration}
+              </div>
               <div className="text-white">Avg Hours/Activity</div>
             </div>
           </div>
           <div className="bg-gray-900 rounded-lg p-6 border border-yellow-400">
             <div className="text-center">
-              <div className="text-3xl font-bold text-yellow-400">{averageMoodScore}</div>
+              <div className="text-3xl font-bold text-yellow-400">
+                {averageMoodScore}
+              </div>
               <div className="text-white">Avg Mood (1-5)</div>
             </div>
           </div>
@@ -99,7 +116,9 @@ const MentalHealthTracker = () => {
 
         {/* Input Form */}
         <div className="bg-gray-900 rounded-lg p-6 border border-yellow-400 mb-8">
-          <h2 className="text-2xl font-bold mb-4">Log Mental Health Activity</h2>
+          <h2 className="text-2xl font-bold mb-4">
+            Log Mental Health Activity
+          </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="activity" className="block text-white mb-2">
@@ -171,21 +190,37 @@ const MentalHealthTracker = () => {
             </button>
           </div>
           {entries.length === 0 ? (
-            <p className="text-white text-center py-8">No activities logged yet. Start tracking your mental health!</p>
+            <p className="text-white text-center py-8">
+              No activities logged yet. Start tracking your mental health!
+            </p>
           ) : (
             <div className="space-y-3">
-              {entries.slice(-10).reverse().map((entry, index) => (
-                <div key={index} className="bg-gray-800 rounded-lg p-4 border border-yellow-400/30">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <div className="text-yellow-400 font-semibold">{entry.activity}</div>
-                      <div className="text-white text-sm">{entry.date} at {entry.time}</div>
-                      <div className="text-white text-sm">Mood: {entry.mood}</div>
+              {entries
+                .slice(-10)
+                .reverse()
+                .map((entry, index) => (
+                  <div
+                    key={index}
+                    className="bg-gray-800 rounded-lg p-4 border border-yellow-400/30"
+                  >
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <div className="text-yellow-400 font-semibold">
+                          {entry.activity}
+                        </div>
+                        <div className="text-white text-sm">
+                          {entry.date} at {entry.time}
+                        </div>
+                        <div className="text-white text-sm">
+                          Mood: {entry.mood}
+                        </div>
+                      </div>
+                      <div className="text-yellow-400 font-bold">
+                        {entry.duration}h
+                      </div>
                     </div>
-                    <div className="text-yellow-400 font-bold">{entry.duration}h</div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
           )}
         </div>
