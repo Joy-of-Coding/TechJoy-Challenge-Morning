@@ -37,6 +37,7 @@ Completed and deployed in under 4 days.
 ## Contributors
 
 -Ki W. (@kiwi-223)
+-Abu H Kamal(@kamal3235, kamal3235 in Github)
 -Eric C (@EricCarverCoding in discord, @EricCarverInWI Github)
 -Adrian C (@acarvjl in discord, acarvjl Github) git
 ---
