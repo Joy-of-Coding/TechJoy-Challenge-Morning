@@ -43,7 +43,7 @@ function getSevenDayTotal(timestamps) {
   }).length;
 }
 
-const Dashboard = () => {
+const Dashboard = ({ entries, achievementsData }) => {
   const [habitData, setHabitData] = React.useState(getHabitData());
 
   // Listen for changes in localStorage (e.g., from other tabs/pages)
@@ -64,6 +64,10 @@ const Dashboard = () => {
 
   // Prepare data for a simple bar chart (no chart library, just a visual)
   const maxCount = Math.max(...sevenDayTotals.map((cat) => cat.total), 1);
+
+  // Achievements data
+  const recentAchievements = achievementsData?.achievements?.slice(-3) || [];
+  const unreadAchievements = achievementsData?.getUnreadAchievements?.() || [];
 
   return (
     <div className="p-4 max-w-3xl mx-auto">
@@ -119,6 +123,59 @@ const Dashboard = () => {
           })}
         </div>
       </div>
+
+      {/* Achievements Section */}
+      {achievementsData && (
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold mb-4 text-yellow-300">
+            🏆 Recent Achievements
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="bg-gray-900 rounded-lg p-4 border border-yellow-400 text-center">
+              <div className="text-2xl font-bold text-yellow-400">{achievementsData.achievements?.length || 0}</div>
+              <div className="text-gray-300">Total Achievements</div>
+            </div>
+            <div className="bg-gray-900 rounded-lg p-4 border border-green-500 text-center">
+              <div className="text-2xl font-bold text-green-400">
+                {achievementsData.achievements?.filter(a => a.read).length || 0}
+              </div>
+              <div className="text-gray-300">Viewed</div>
+            </div>
+            <div className="bg-gray-900 rounded-lg p-4 border border-purple-500 text-center">
+              <div className="text-2xl font-bold text-purple-400">{unreadAchievements.length}</div>
+              <div className="text-gray-300">Unread</div>
+            </div>
+          </div>
+
+          {/* Recent Achievements */}
+          {recentAchievements.length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-3 text-yellow-300">Latest Achievements</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {recentAchievements.map(achievement => (
+                  <div key={achievement.id} className="bg-gray-900 rounded-lg p-3 border border-yellow-400">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-xl">🏆</span>
+                      <span className="font-semibold text-yellow-400 text-sm">{achievement.title}</span>
+                    </div>
+                    <p className="text-gray-300 text-xs">{achievement.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Quick Action */}
+          <div className="flex justify-center">
+            <a
+              href="/achievements"
+              className="bg-yellow-400 text-black font-bold px-6 py-2 rounded-lg hover:bg-yellow-300 transition-colors"
+            >
+              View All Achievements
+            </a>
+          </div>
+        </div>
+      )}
 
       <div>
         <h2 className="text-xl font-semibold mb-2 text-yellow-300">

@@ -1,13 +1,16 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useLocalStorage } from "./hooks/useLocalStorage";
+import { useAchievements } from "./hooks/useAchievements";
 import Header from "./components/Header";
 import Dashboard from "./routes/Dashboard";
 import CodingTracker from "./routes/CodingTracker";
 import PhysicalTracker from "./routes/PhysicalTracker";
 import MentalHealthTracker from "./routes/MentalHealthTracker";
+import Achievements from "./routes/Achievements";
 
 function App() {
   const [entries, setEntries] = useLocalStorage("habit-hive-entries", []);
+  const achievementsData = useAchievements();
 
   return (
     <Router>
@@ -17,15 +20,16 @@ function App() {
         <div className="flex justify-center">
           <main className="w-full max-w-4xl mx-auto p-4">
             <Routes>
-              <Route path="/" element={<Dashboard entries={entries} />} />
+              <Route path="/" element={<Dashboard entries={entries} achievementsData={achievementsData} />} />
               <Route
                 path="/coding"
                 element={
-                  <CodingTracker entries={entries} setEntries={setEntries} />
+                  <CodingTracker entries={entries} setEntries={setEntries} achievementsData={achievementsData} />
                 }
               />
               <Route path="/physical" element={<PhysicalTracker />} />
               <Route path="/mental" element={<MentalHealthTracker />} />
+              <Route path="/achievements" element={<Achievements />} />
             </Routes>
           </main>
         </div>
