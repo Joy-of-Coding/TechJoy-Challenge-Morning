@@ -1,123 +1,90 @@
-# TechJoy-Challenge-Morning
+# Habit Hive 🐝
 
-## Project Summary
-
-**Vibe Code** is a web app created in just **4 days** as part of a hackathon challenge to build something **SLC: Simple, Lovable, and Complete**, inspired by the [SLC philosophy](https://longform.asmartbear.com/slc/).
-
-Built under the theme **"Transform Together,"** this project is a testament to what can happen when a small team leans into creativity, collaboration, and just enough structure to build something real — and something people actually enjoy.
-
-- **Simple** – No bloat, no overengineering — just what matters.
-- **Lovable** – We focused on personality, playfulness, and user-first interactions.
-- **Complete** – Delivered end-to-end with working features, polish, and deployment.
-
----
+A React-based habit tracking application with a beautiful bee/hive theme. Track your coding hours, physical activities, and mental health habits with a visually appealing interface.
 
 ## Tech Stack
 
-- **React** – For building composable, reactive UI components
-- **JavaScript** – For expressive, client-side logic and functionality
-- **Vite** – For fast development and building
-- **Tailwind CSS** – For utility-first styling
-- **Vitest** – For unit testing
-- **Prettier** - For project formatting
-
----
+- **React 19.1.0** - Frontend library
+- **Vite** - Fast development and build tool
+- **Tailwind CSS** - Utility-first CSS framework
+- **React Router DOM** - Client-side routing
+- **Chart.js** - Data visualization
+- **Vitest** - Unit testing
+- **Prettier** - Code formatting
+- **ESLint** - Code linting
 
 ## Prerequisites
 
-Before you begin, ensure you have the following installed on your machine:
+- Node.js (version 18 or higher)
+- npm or yarn
 
-- **Node.js** (version 18 or higher)
-- **npm** (comes with Node.js)
-
-You can check your versions by running:
-
-```bash
-node --version
-npm --version
-```
-
----
-
-## Setup
+## Getting Started
 
 1. **Clone the repository**
-
    ```bash
-   git clone https://github.com/Joy-of-Coding/TechJoy-Challenge-Morning.git
-   cd TechJoy-Challenge-Morning
+   git clone <repository-url>
+   cd TechJoy-Challenge-Morning-2
    ```
 
 2. **Install dependencies**
-
    ```bash
    npm install
    ```
 
-3. **Verify installation**
+3. **Start the development server**
    ```bash
-   npm run lint
+   npm run dev
    ```
 
----
+4. **Open your browser**
+   Navigate to `http://localhost:5173` (or the port shown in your terminal)
 
-## Running the Project Locally
+## Available Scripts
 
-Start the development server with hot reload:
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run test:unit` - Run unit tests
+- `npm run format` - Format code with Prettier
 
-```bash
-npm run dev
+## Project Structure
+
+```
+src/
+├── components/          # Reusable UI components
+├── routes/             # Page components
+├── hooks/              # Custom React hooks
+├── assets/             # Images and static files
+├── utils/              # Utility functions
+└── test/               # Test setup files
 ```
 
-The application will be available at `http://localhost:5173` (or the next available port).
+## Features
 
-### Testing
-
-Run unit tests:
-
-```bash
-npm run test:unit
-```
-
-Run tests with coverage:
-
-```bash
-npm run test:coverage
-```
-
-### Code Quality
-
-Format code with Prettier:
-
-```bash
-npm run format
-```
-
----
-
-## Deployment
-
-Completed and deployed in under 4 days.
-
----
+- **Habit Tracking**: Log coding hours, physical activities, and mental health activities
+- **Visual Progress**: Hexagonal hive visualization for coding sessions
+- **Dashboard**: Overview of all habit categories with 7-day summaries
+- **Data Persistence**: All data stored locally using localStorage
+- **Responsive Design**: Mobile-first approach with Tailwind CSS
+- **Bee/Hive Theme**: Consistent visual identity throughout the app
 
 ## Highlights
 
-- Followed the SLC principle: delivered a real, usable, lovable product
-- Built by vibing — no rigid specs, just shared creative energy
-- Emphasized iteration, simplicity, and joy in coding
-- Explored how tech can **transform** teams and ideas when built together
+- 🐝 Beautiful bee/hive themed interface
+- 📊 Visual progress tracking with hexagonal patterns
+- 📱 Fully responsive design
+- 💾 Local data persistence
+- 🎨 Modern UI with Tailwind CSS
+- ⚡ Fast development with Vite
+- 🧪 Comprehensive testing setup
 
----
+## Contributing
 
-## Contributors
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
 
--Ki W. (@kiwi-223)
--Eric C (@EricCarverCoding in discord, @EricCarverInWI Github)
--Russell C (@russllist)
--Adrian C (@acarvjl in discord, acarvjl Github)
--Rebecca A. Stone (@beckstone on discord and Github)
+## License
 
----
-
-> "Transform Together" by keeping it **Simple**, making it **Lovable**, and finishing it **Complete**.
+This project is licensed under the MIT License.

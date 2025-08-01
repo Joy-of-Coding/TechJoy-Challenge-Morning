@@ -7,6 +7,7 @@ const habitPages = [
   { name: "Coding", path: "/coding" },
   { name: "Physical", path: "/physical" },
   { name: "Mental Health", path: "/mental" },
+  { name: "Achievements", path: "/achievements" },
   // Add more habits as needed
 ];
 
