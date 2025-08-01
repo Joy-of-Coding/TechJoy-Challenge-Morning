@@ -9,6 +9,8 @@ import AchievementPage from "./routes/AchievementPage";
 
 function App() {
   const [entries, setEntries] = useLocalStorage("habit-hive-entries", []);
+  const [physicalEntries, setPhysicalEntries] = useLocalStorage("habit-hive-physical-entries", []);
+  const [mentalEntries, setMentalEntries] = useLocalStorage("habit-hive-mental-entries", []);
 
   return (
     <Router>
@@ -25,9 +27,9 @@ function App() {
                   <CodingTracker entries={entries} setEntries={setEntries} />
                 }
               />
-              <Route path="/physical" element={<PhysicalTracker />} />
-              <Route path="/mental" element={<MentalHealthTracker />} />
-              <Route path="/achievements" element={<AchievementPage entries={entries} />} />
+              <Route path="/physical" element={<PhysicalTracker entries={physicalEntries} setEntries={setPhysicalEntries} />} />
+              <Route path="/mental" element={<MentalHealthTracker entries={mentalEntries} setEntries={setMentalEntries} />} />
+              <Route path="/achievements" element={<AchievementPage entries={entries} physicalEntries={physicalEntries} mentalEntries={mentalEntries} />} />
             </Routes>
           </main>
         </div>
