@@ -1,6 +1,8 @@
 import { useState } from "react";
 import MosaicReveal from "./MosaicReveal";
 
+const getGridSizeForGoal = (goal) => Math.max(2, Math.ceil(Math.sqrt(goal)));
+
 const HabitTracker = ({
   entries,
   setEntries,
@@ -9,6 +11,7 @@ const HabitTracker = ({
   entryLabel,
   placeholder,
   unit,
+  weeklyGoal = 16,
   mosaicGridSize = 4,
   inspoQuote,
   clearWarning = "Are you sure you want to clear all your data? This cannot be undone.",
@@ -63,6 +66,9 @@ const HabitTracker = ({
   const totalSessions = entries.length;
   const averageValue =
     totalSessions > 0 ? (totalValue / totalSessions).toFixed(1) : 0;
+  const effectiveGridSize = weeklyGoal
+    ? getGridSizeForGoal(weeklyGoal)
+    : mosaicGridSize;
 
   return (
     <div className="min-h-screen /*bg-gradient-to-br from-black via-black to-yellow-400*/ text-yellow-400 font-montserrat">
@@ -88,6 +94,18 @@ const HabitTracker = ({
                   {totalSessions}
                 </span>
               </div>
+              <div className="text-white text-lg mb-1">
+                Weekly Goal:{" "}
+                <span className="text-yellow-400 font-bold">
+                  {weeklyGoal}
+                </span>
+              </div>
+              <div className="text-white text-lg mb-1">
+                Progress:{" "}
+                <span className="text-yellow-400 font-bold">
+                  {Math.min(totalSessions, weeklyGoal)}/{weeklyGoal}
+                </span>
+              </div>
               <div className="text-white text-lg">
                 Average:{" "}
                 <span className="text-yellow-400 font-bold">
@@ -99,8 +117,9 @@ const HabitTracker = ({
             <MosaicReveal
               imageSrc={imageSrc}
               filledSquares={entries.length}
+              completionGoal={weeklyGoal}
               onComplete={() => setTimeout(() => setShowMosaic(false), 3000)}
-              gridSize={mosaicGridSize}
+              gridSize={effectiveGridSize}
             />
             <div className="text-yellow-400 text-sm">
               Keep building your hive! 🐝

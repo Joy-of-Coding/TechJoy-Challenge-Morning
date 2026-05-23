@@ -1,4 +1,5 @@
 import HabitTracker from "../components/HabitTracker";
+import { useLocalStorage } from "../hooks/useLocalStorage";
 import programmingBee from "../assets/programmingBee.jpg";
 
 const codingConfig = {
@@ -13,8 +14,21 @@ const codingConfig = {
   inspoQuote: "You've been a busy coding bee!",
 };
 
-const CodingTracker = ({ entries, setEntries }) => (
-  <HabitTracker entries={entries} setEntries={setEntries} {...codingConfig} />
-);
+const CodingTracker = ({ entries, setEntries }) => {
+  const [categoryGoals] = useLocalStorage("habit-hive-category-goals", {
+    coding: 16,
+    physical: 16,
+    mental: 16,
+  });
+
+  return (
+    <HabitTracker
+      entries={entries}
+      setEntries={setEntries}
+      weeklyGoal={categoryGoals.coding}
+      {...codingConfig}
+    />
+  );
+};
 
 export default CodingTracker;

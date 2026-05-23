@@ -1,4 +1,5 @@
 import HabitTracker from "../components/HabitTracker";
+import { useLocalStorage } from "../hooks/useLocalStorage";
 import meditatingBee from "../assets/meditatingBee.jpg";
 
 const mentalConfig = {
@@ -13,8 +14,21 @@ const mentalConfig = {
   inspoQuote: "Bee Kind to Your Mind!",
 };
 
-const MentalHealthTracker = ({ entries, setEntries }) => (
-  <HabitTracker entries={entries} setEntries={setEntries} {...mentalConfig} />
-);
+const MentalHealthTracker = ({ entries, setEntries }) => {
+  const [categoryGoals] = useLocalStorage("habit-hive-category-goals", {
+    coding: 16,
+    physical: 16,
+    mental: 16,
+  });
+
+  return (
+    <HabitTracker
+      entries={entries}
+      setEntries={setEntries}
+      weeklyGoal={categoryGoals.mental}
+      {...mentalConfig}
+    />
+  );
+};
 
 export default MentalHealthTracker;

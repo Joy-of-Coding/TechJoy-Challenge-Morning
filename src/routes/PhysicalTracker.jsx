@@ -1,4 +1,5 @@
 import HabitTracker from "../components/HabitTracker";
+import { useLocalStorage } from "../hooks/useLocalStorage";
 import flashdanceBee from "../assets/flashdanceBee.jpg";
 
 const physicalConfig = {
@@ -13,8 +14,21 @@ const physicalConfig = {
   inspoQuote: "You're Hive-ly Active!",
 };
 
-const PhysicalTracker = ({ entries, setEntries }) => (
-  <HabitTracker entries={entries} setEntries={setEntries} {...physicalConfig} />
-);
+const PhysicalTracker = ({ entries, setEntries }) => {
+  const [categoryGoals] = useLocalStorage("habit-hive-category-goals", {
+    coding: 16,
+    physical: 16,
+    mental: 16,
+  });
+
+  return (
+    <HabitTracker
+      entries={entries}
+      setEntries={setEntries}
+      weeklyGoal={categoryGoals.physical}
+      {...physicalConfig}
+    />
+  );
+};
 
 export default PhysicalTracker;
