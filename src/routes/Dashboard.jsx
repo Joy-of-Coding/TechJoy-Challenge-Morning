@@ -301,7 +301,6 @@ const Dashboard = ({
                   <MosaicReveal
                     imageSrc={cat.image}
                     filledSquares={progress}
-                    gridSize={Math.ceil(Math.sqrt(cat.goal))}
                     goal={cat.goal}
                   />
                 )}

@@ -1,5 +1,33 @@
 import React, { useState, useEffect } from "react";
-import beehive from "../assets/beehive.png"; // Adjust the path as necessary
+import beehive from "../assets/beehive.png";
+
+// Aim for ~3 tiles per row, max 4 per row, max 4 rows. Fuller rows at top.
+function getRowCounts(n) {
+  if (n <= 0) return [1];
+  const numRows = Math.min(Math.ceil(n / 3), 4);
+  const base = Math.floor(n / numRows);
+  const extras = n % numRows;
+  const rows = Array(numRows).fill(base);
+  for (let i = 0; i < extras; i++) rows[i]++;
+  return rows;
+}
+
+function getTileStyle(isRevealed, imageSrc, rowIndex, colIndex, countInRow, numRows) {
+  if (!isRevealed) {
+    return { opacity: 0.3, transition: "opacity 0.3s ease-in-out" };
+  }
+  const xPos = countInRow > 1 ? (colIndex / (countInRow - 1)) * 100 : 0;
+  const yPos = numRows > 1 ? (rowIndex / (numRows - 1)) * 100 : 0;
+  return {
+    backgroundImage: `url(${imageSrc})`,
+    backgroundSize: `${countInRow * 100}% ${numRows * 100}%`,
+    backgroundPosition: `${xPos}% ${yPos}%`,
+    backgroundRepeat: "no-repeat",
+    opacity: 1,
+    transition: "opacity 0.3s ease-in-out",
+    filter: "blur(3px)",
+  };
+}
 
 const MosaicReveal = ({
   imageSrc,
@@ -8,73 +36,38 @@ const MosaicReveal = ({
   gridSize = 4,
   goal,
 }) => {
+  const totalSquares = goal ?? gridSize * gridSize;
+  const rowCounts = getRowCounts(totalSquares);
+  const numRows = rowCounts.length;
+  const showFullImage = filledSquares >= totalSquares;
   const [revealedSquares, setRevealedSquares] = useState([]);
-  const totalSquares = gridSize * gridSize;
-  const completionTarget = goal ?? totalSquares;
-  const showFullImage = filledSquares >= completionTarget;
 
   useEffect(() => {
-    const newRevealedSquares = [];
+    const revealed = [];
     for (let i = 0; i < Math.min(filledSquares, totalSquares); i++) {
-      newRevealedSquares.push(i);
+      revealed.push(i);
     }
-    setRevealedSquares(newRevealedSquares);
-
-    if (filledSquares >= completionTarget && onComplete) {
+    setRevealedSquares(revealed);
+    if (filledSquares >= totalSquares && onComplete) {
       setTimeout(onComplete);
     }
-  }, [filledSquares, totalSquares, completionTarget, onComplete]);
+  }, [filledSquares, totalSquares, onComplete]);
 
-  const getSquareStyle = (index) => {
-    const isRevealed = revealedSquares.includes(index);
-
-    if (isRevealed) {
-      // Calculate the position of this square in the image
-      const row = Math.floor(index / gridSize);
-      const col = index % gridSize;
-      const sizePercent = 100 / gridSize;
-
-      return {
-        backgroundImage: `url(${imageSrc})`,
-        backgroundSize: `${gridSize * 100}%`,
-        backgroundPosition: `${col * sizePercent}% ${row * sizePercent}%`,
-        backgroundRepeat: "no-repeat",
-        opacity: 1,
-        transition: "opacity 0.3s ease-in-out, filter 0.3s ease-in-out",
-        width: "100%",
-        height: "100%",
-        minHeight: "40px",
-        filter: "blur(3px)", // Add blur to revealed squares
-      };
-    }
-
-    return {
-      opacity: 0.3,
-      transition: "opacity 0.3s ease-in-out, filter 0.3s ease-in-out",
-      width: "100%",
-      height: "100%",
-      minHeight: "40px", // Ensure minimum size for visibility
-    };
-  };
-
-  // If showing full image, render the complete unblurred image
   if (showFullImage) {
     return (
       <div className="relative w-full max-w-md mx-auto">
         <div
           className="w-full rounded-lg bg-cover bg-center"
-          style={{
-            backgroundImage: `url(${imageSrc})`,
-            aspectRatio: "1/1",
-          }}
+          style={{ backgroundImage: `url(${imageSrc})`, aspectRatio: "1/1" }}
         />
       </div>
     );
   }
 
+  let tileIndex = 0;
+
   return (
     <div className="relative w-full max-w-md mx-auto">
-      {/* Background image (full image) */}
       <div
         className="absolute inset-0 bg-cover bg-center rounded-lg"
         style={{
@@ -82,35 +75,44 @@ const MosaicReveal = ({
           filter: "blur(4px) brightness(0.3)",
         }}
       />
-
-      {/* Mosaic grid */}
       <div
-        className="relative grid gap-1 rounded-lg overflow-hidden"
+        className="mosaic-grid relative rounded-lg overflow-hidden"
         style={{
-          gridTemplateColumns: `repeat(${gridSize}, 1fr)`,
+          display: "flex",
+          flexDirection: "column",
           aspectRatio: "1/1",
           width: "100%",
+          gap: "4px",
         }}
       >
-        {Array.from({ length: totalSquares }, (_, index) => (
-          <div
-            key={index}
-            className="bg-gray-800 border border-gray-600 rounded-sm flex items-center justify-center"
-            style={getSquareStyle(index)}
-          />
+        {rowCounts.map((count, rowIndex) => (
+          <div key={rowIndex} style={{ display: "flex", flex: 1, gap: "4px" }}>
+            {Array.from({ length: count }, (_, colIndex) => {
+              const i = tileIndex++;
+              return (
+                <div
+                  key={i}
+                  className="bg-gray-800 border border-gray-600 rounded-sm"
+                  style={{
+                    flex: 1,
+                    ...getTileStyle(
+                      revealedSquares.includes(i),
+                      imageSrc,
+                      rowIndex,
+                      colIndex,
+                      count,
+                      numRows
+                    ),
+                  }}
+                />
+              );
+            })}
+          </div>
         ))}
       </div>
-
-      {/* Progress indicator */}
       <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-sm">
-        {filledSquares}/{completionTarget}
+        {filledSquares}/{totalSquares}
       </div>
-      {/* Completion count indicator */}
-      {filledSquares === completionTarget && (
-        <div className="absolute top-2 right-2 bg-blue-600/90 text-white px-2 py-1 rounded text-xs">
-          {filledSquares}/{completionTarget}
-        </div>
-      )}
     </div>
   );
 };

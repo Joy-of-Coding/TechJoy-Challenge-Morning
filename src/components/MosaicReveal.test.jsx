@@ -42,15 +42,18 @@ describe("MosaicReveal", () => {
     const { container } = render(
       <MosaicReveal imageSrc={mockImageSrc} filledSquares={20} gridSize={4} />,
     );
-    const revealedSquares = container.querySelectorAll('[style*="opacity: 1"]');
-    expect(revealedSquares).toHaveLength(16); // Should cap at total squares
+    // When filledSquares exceeds totalSquares, the full image is shown instead
+    const fullImage = container.querySelector(".bg-cover.bg-center");
+    expect(fullImage).toBeInTheDocument();
+    const squares = container.querySelectorAll(".bg-gray-800");
+    expect(squares).toHaveLength(0);
   });
 
   it("maintains aspect ratio with different grid sizes", () => {
     const { container } = render(
       <MosaicReveal imageSrc={mockImageSrc} gridSize={3} />,
     );
-    const grid = container.querySelector(".grid");
+    const grid = container.querySelector(".mosaic-grid");
     expect(grid).toHaveStyle({
       aspectRatio: "1/1",
     });
@@ -132,13 +135,13 @@ describe("MosaicReveal", () => {
     );
     expect(backgroundDiv.style.filter).to.equal("blur(4px) brightness(0.3)");
   });
-  it("displays completion count indicator when completionCount > 0", () => {
+  it("displays progress indicator with correct count", () => {
     const { container } = render(
-      <MosaicReveal imageSrc={mockImageSrc} completionCount={5} />,
+      <MosaicReveal imageSrc={mockImageSrc} filledSquares={5} />,
     );
 
-    const completionIndicator = container.querySelector(".bg-blue-600\\/90");
-    expect(completionIndicator).toHaveTextContent("5/16");
+    const progressIndicator = container.querySelector(".bg-black\\/70");
+    expect(progressIndicator).toHaveTextContent("5/16");
   });
 
   it("does not display completion count indicator when completionCount is 0", () => {
@@ -150,35 +153,21 @@ describe("MosaicReveal", () => {
     expect(completionIndicator).not.toBeInTheDocument();
   });
 
-  it("shows full unblurred image when completionCount >= 16", () => {
+  it("shows full unblurred image when all squares are filled", () => {
     const { container } = render(
-      <MosaicReveal
-        imageSrc={mockImageSrc}
-        completionCount={16}
-        filledSquares={10}
-      />,
+      <MosaicReveal imageSrc={mockImageSrc} filledSquares={16} />,
     );
 
-    // Should not render mosaic grid
+    // Mosaic grid should not render
     const squares = container.querySelectorAll(".bg-gray-800");
-    expect(squares).toHaveLength(16);
+    expect(squares).toHaveLength(0);
 
-    // Should render full image
+    // Full image should render
     const fullImage = container.querySelector(".bg-cover.bg-center");
     expect(fullImage).toHaveStyle({
       backgroundImage: `url(${mockImageSrc})`,
       aspectRatio: "1/1",
     });
-
-    // Should show unlocked badge
-    const unlockedBadge = container.querySelector(".bg-green-600\\/90");
-    expect(unlockedBadge).toBeInTheDocument();
-    expect(unlockedBadge).toHaveTextContent("Unlocked!");
-
-    // Should still show progress indicator
-    const progressIndicator = container.querySelector(".bg-black\\/70");
-    expect(progressIndicator).toBeInTheDocument();
-    expect(progressIndicator).toHaveTextContent("10/16");
   });
 
   it("shows full unblurred image when completionCount > 16", () => {
@@ -217,7 +206,7 @@ describe("MosaicReveal", () => {
 
   it("maintains aspect ratio for full image view", () => {
     const { container } = render(
-      <MosaicReveal imageSrc={mockImageSrc} completionCount={16} />,
+      <MosaicReveal imageSrc={mockImageSrc} filledSquares={16} />,
     );
 
     const fullImage = container.querySelector(".bg-cover.bg-center");
