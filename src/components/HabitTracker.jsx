@@ -1,5 +1,8 @@
 import { useState } from "react";
 import MosaicReveal from "./MosaicReveal";
+import PizzaReveal from "./PizzaReveal";
+import VoronoiReveal from "./VoronoiReveal";
+import { loadRevealStyle } from "../utils/localStorage";
 
 const HabitTracker = ({
   entries,
@@ -9,7 +12,7 @@ const HabitTracker = ({
   entryLabel,
   placeholder,
   unit,
-  mosaicGridSize = 4,
+  goal = 16,
   inspoQuote,
   clearWarning = "Are you sure you want to clear all your data? This cannot be undone.",
 }) => {
@@ -96,12 +99,22 @@ const HabitTracker = ({
                 </span>
               </div>
             </div>
-            <MosaicReveal
-              imageSrc={imageSrc}
-              filledSquares={entries.length}
-              onComplete={() => setTimeout(() => setShowMosaic(false), 3000)}
-              gridSize={mosaicGridSize}
-            />
+            {(() => {
+              const style = loadRevealStyle();
+              const revealProps = {
+                imageSrc,
+                filledSquares: entries.length,
+                goal,
+              };
+              if (style === "pizza") return <PizzaReveal {...revealProps} />;
+              if (style === "voronoi") return <VoronoiReveal {...revealProps} />;
+              return (
+                <MosaicReveal
+                  {...revealProps}
+                  onComplete={() => setTimeout(() => setShowMosaic(false), 3000)}
+                />
+              );
+            })()}
             <div className="text-yellow-400 text-sm">
               Keep building your hive! 🐝
             </div>
