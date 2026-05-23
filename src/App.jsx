@@ -22,7 +22,7 @@ function App() {
   );
 
   return (
-    <Router>
+    <Router basename={import.meta.env.BASE_URL}>
       <div className="min-h-screen bg-gradient-to-br from-black via-black to-yellow-400 text-yellow-400 font-montserrat">
         <Header />
         <div className="flex justify-center">

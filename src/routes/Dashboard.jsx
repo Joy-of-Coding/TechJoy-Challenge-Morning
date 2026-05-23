@@ -140,9 +140,8 @@ const Dashboard = ({
 
   // OPTIMIZED: Memoized update function to prevent unnecessary re-creations
   const updateHabitData = React.useCallback(() => {
-    if (isLoading) return; // Prevent multiple simultaneous updates
-
     setIsLoading(true);
+
     try {
       const newData = getHabitData();
       const activity = getRecentActivity();
@@ -154,7 +153,7 @@ const Dashboard = ({
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading]);
+  }, []);
 
   // OPTIMIZED: Manual refresh only - removed aggressive polling
   const handleManualRefresh = React.useCallback(() => {

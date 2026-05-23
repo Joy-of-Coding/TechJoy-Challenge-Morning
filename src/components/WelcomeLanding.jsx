@@ -1,11 +1,31 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import MosaicReveal from "./MosaicReveal";
+import { useLocalStorage } from "../hooks/useLocalStorage";
 import programmingBee from "../assets/programmingBee.jpg";
 import flashdanceBee from "../assets/flashdanceBee.jpg";
 import meditatingBee from "../assets/meditatingBee.jpg";
 
+const GOAL_OPTIONS = [4, 9, 16];
+const DEFAULT_CATEGORY_GOALS = {
+  coding: 16,
+  physical: 16,
+  mental: 16,
+};
+
+const getGridSizeForGoal = (goal) => Math.max(2, Math.ceil(Math.sqrt(goal)));
+
 const WelcomeLanding = () => {
+  const [categoryGoals, setCategoryGoals] = useLocalStorage(
+    "habit-hive-category-goals",
+    DEFAULT_CATEGORY_GOALS,
+  );
+  const navigate = useNavigate();
+
+  const handleGoTo = (path) => {
+    navigate(path);
+  };
+
   return (
     <div className="min-h-screen font-montserrat">
       <div className="container mx-auto px-4 py-8">
@@ -21,12 +41,13 @@ const WelcomeLanding = () => {
             life.
           </p>
           <div className="flex justify-center gap-4 mb-8">
-            <Link
-              to="/coding"
+            <button
+              type="button"
+              onClick={() => handleGoTo("/coding")}
               className="px-8 py-3 bg-yellow-400 text-black font-bold rounded-lg hover:bg-yellow-300 transition-colors shadow-lg"
             >
               Start Tracking
-            </Link>
+            </button>
             {/* <Link
               to="/"
               className="px-8 py-3 border-2 border-yellow-400 text-yellow-400 font-bold rounded-lg hover:bg-yellow-400 hover:text-black transition-colors"
@@ -88,21 +109,41 @@ const WelcomeLanding = () => {
                 hours spent coding, debugging, or learning new technologies.
               </p>
               <div className="text-sm text-yellow-300 mb-4">
-                <strong>Goal:</strong> 16 sessions per week
+                <strong>Goal:</strong> {categoryGoals.coding} sessions per week
+              </div>
+              <div className="mb-4">
+                <select
+                  value={categoryGoals.coding}
+                  onChange={(event) =>
+                    setCategoryGoals((currentGoals) => ({
+                      ...currentGoals,
+                      coding: Number(event.target.value),
+                    }))
+                  }
+                  className="w-full rounded-lg border border-yellow-400 bg-black/70 text-white px-3 py-2 outline-none"
+                >
+                  {GOAL_OPTIONS.map((option) => (
+                    <option key={`coding-${option}`} value={option}>
+                      {option} sessions per week
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="w-24 h-24 mx-auto mb-4">
                 <MosaicReveal
                   imageSrc={programmingBee}
-                  filledSquares={2}
-                  gridSize={4}
+                  filledSquares={categoryGoals.coding}
+                  completionGoal={categoryGoals.coding * 2}
+                  gridSize={getGridSizeForGoal(categoryGoals.coding)}
                 />
               </div>
-              <Link
-                to="/coding"
+              <button
+                type="button"
+                onClick={() => handleGoTo("/coding")}
                 className="inline-block px-4 py-2 bg-yellow-400 text-black font-bold rounded hover:bg-yellow-300 transition-colors"
               >
                 Start Coding
-              </Link>
+              </button>
             </div>
 
             {/* Physical Health Category */}
@@ -117,21 +158,41 @@ const WelcomeLanding = () => {
                 goals.
               </p>
               <div className="text-sm text-yellow-300 mb-4">
-                <strong>Goal:</strong> 16 activities per week
+                <strong>Goal:</strong> {categoryGoals.physical} activities per week
+              </div>
+              <div className="mb-4">
+                <select
+                  value={categoryGoals.physical}
+                  onChange={(event) =>
+                    setCategoryGoals((currentGoals) => ({
+                      ...currentGoals,
+                      physical: Number(event.target.value),
+                    }))
+                  }
+                  className="w-full rounded-lg border border-yellow-400 bg-black/70 text-white px-3 py-2 outline-none"
+                >
+                  {GOAL_OPTIONS.map((option) => (
+                    <option key={`physical-${option}`} value={option}>
+                      {option} activities per week
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="w-24 h-24 mx-auto mb-4">
                 <MosaicReveal
                   imageSrc={flashdanceBee}
-                  filledSquares={1}
-                  gridSize={4}
+                  filledSquares={categoryGoals.physical}
+                  completionGoal={categoryGoals.physical * 2}
+                  gridSize={getGridSizeForGoal(categoryGoals.physical)}
                 />
               </div>
-              <Link
-                to="/physical"
+              <button
+                type="button"
+                onClick={() => handleGoTo("/physical")}
                 className="inline-block px-4 py-2 bg-yellow-400 text-black font-bold rounded hover:bg-yellow-300 transition-colors"
               >
                 Track Fitness
-              </Link>
+              </button>
             </div>
 
             {/* Mental Health Category */}
@@ -145,21 +206,41 @@ const WelcomeLanding = () => {
                 journaling, therapy sessions, or any self-care activities.
               </p>
               <div className="text-sm text-yellow-300 mb-4">
-                <strong>Goal:</strong> 16 activities per week
+                <strong>Goal:</strong> {categoryGoals.mental} activities per week
+              </div>
+              <div className="mb-4">
+                <select
+                  value={categoryGoals.mental}
+                  onChange={(event) =>
+                    setCategoryGoals((currentGoals) => ({
+                      ...currentGoals,
+                      mental: Number(event.target.value),
+                    }))
+                  }
+                  className="w-full rounded-lg border border-yellow-400 bg-black/70 text-white px-3 py-2 outline-none"
+                >
+                  {GOAL_OPTIONS.map((option) => (
+                    <option key={`mental-${option}`} value={option}>
+                      {option} activities per week
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="w-24 h-24 mx-auto mb-4">
                 <MosaicReveal
                   imageSrc={meditatingBee}
-                  filledSquares={1}
-                  gridSize={4}
+                  filledSquares={categoryGoals.mental}
+                  completionGoal={categoryGoals.mental * 2}
+                  gridSize={getGridSizeForGoal(categoryGoals.mental)}
                 />
               </div>
-              <Link
-                to="/mental"
+              <button
+                type="button"
+                onClick={() => handleGoTo("/mental")}
                 className="inline-block px-4 py-2 bg-yellow-400 text-black font-bold rounded hover:bg-yellow-300 transition-colors"
               >
                 Mind Matters
-              </Link>
+              </button>
             </div>
           </div>
         </div>
@@ -212,12 +293,13 @@ const WelcomeLanding = () => {
             Start your habit tracking journey today and watch your progress
             blossom into something beautiful.
           </p>
-          <Link
-            to="/coding"
+          <button
+            type="button"
+            onClick={() => handleGoTo("/coding")}
             className="inline-block px-10 py-4 bg-gradient-to-r from-yellow-400 to-yellow-300 text-black font-bold text-lg rounded-lg hover:from-yellow-300 hover:to-yellow-200 transition-all shadow-lg"
           >
             🐝 Begin Your Journey
-          </Link>
+          </button>
         </div>
       </div>
     </div>
