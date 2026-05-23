@@ -8,6 +8,7 @@ const codingConfig = {
   placeholder: "e.g. 2.5",
   unit: "h",
   mosaicGridSize: 4,
+  gridStorageKey: "habit-hive-coding-grid-size",
   clearWarning:
     "Are you sure you want to clear all your coding data? This cannot be undone.",
   inspoQuote: "You've been a busy coding bee!",

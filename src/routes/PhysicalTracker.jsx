@@ -8,6 +8,7 @@ const physicalConfig = {
   placeholder: "e.g. 1.5",
   unit: "h",
   mosaicGridSize: 4,
+  gridStorageKey: "habit-hive-physical-grid-size",
   clearWarning:
     "Are you sure you want to clear all your physical activity data? This cannot be undone.",
   inspoQuote: "You're Hive-ly Active!",

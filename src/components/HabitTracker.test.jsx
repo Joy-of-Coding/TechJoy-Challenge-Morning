@@ -12,6 +12,7 @@ const defaultProps = {
   placeholder: "e.g. 2.5",
   unit: "h",
   mosaicGridSize: 4,
+  gridStorageKey: "habit-hive-test-grid-size",
   inspoQuote: "Test quote",
   clearWarning: "Clear?",
 };
@@ -19,6 +20,18 @@ const defaultProps = {
 describe("HabitTracker", () => {
   beforeEach(() => {
     defaultProps.setEntries.mockClear();
+    window.localStorage.clear();
+  });
+
+  it("prompts the user for a starting number of blocks", () => {
+    render(<HabitTracker {...defaultProps} />);
+
+    expect(screen.getByText(/Choose Your Starting Hive/i)).toBeInTheDocument();
+    const blockButtons = screen.getAllByRole("button", { name: /4 Blocks/i });
+    fireEvent.click(blockButtons[0]);
+
+    expect(screen.queryByText(/Choose Your Starting Hive/i)).not.toBeInTheDocument();
+    expect(JSON.parse(window.localStorage.getItem(defaultProps.gridStorageKey))).toBe(4);
   });
 
   it("renders the tracker form and status", () => {

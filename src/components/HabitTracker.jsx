@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useLocalStorage } from "../hooks/useLocalStorage";
 import MosaicReveal from "./MosaicReveal";
 
 const HabitTracker = ({
@@ -10,12 +11,34 @@ const HabitTracker = ({
   placeholder,
   unit,
   mosaicGridSize = 4,
+  gridStorageKey,
   inspoQuote,
   clearWarning = "Are you sure you want to clear all your data? This cannot be undone.",
 }) => {
   const [value, setValue] = useState("");
   const [showMosaic, setShowMosaic] = useState(false);
+  const [savedGridSize, setSavedGridSize] = useLocalStorage(
+    gridStorageKey,
+    null,
+  );
+  const [gridSize, setGridSize] = useState(savedGridSize ?? mosaicGridSize);
+  const [showGridSizePrompt, setShowGridSizePrompt] = useState(
+    savedGridSize === null,
+  );
   const mosaicTimerRef = useRef(null);
+
+  useEffect(() => {
+    if (savedGridSize !== null) {
+      setGridSize(savedGridSize);
+      setShowGridSizePrompt(false);
+    }
+  }, [savedGridSize]);
+
+  const handleChooseGridSize = (size) => {
+    setGridSize(size);
+    setSavedGridSize(size);
+    setShowGridSizePrompt(false);
+  };
 
   const todayString = new Date().toDateString();
 
@@ -90,6 +113,38 @@ const HabitTracker = ({
 
   return (
     <div className="min-h-screen text-yellow-400 font-montserrat">
+      {showGridSizePrompt && (
+        <div className="fixed inset-0 bg-black/90 flex justify-center items-center z-50 px-4">
+          <div className="bg-gray-900 rounded-3xl p-8 max-w-md text-center border-3 border-yellow-400 shadow-2xl shadow-yellow-400/30">
+            <h2 className="text-yellow-400 mb-4 text-2xl">
+              Choose Your Starting Hive
+            </h2>
+            <p className="text-white mb-6">
+              Pick how many blocks you want to start with for this tracker.
+            </p>
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              {[4, 6, 9, 16].map((size) => (
+                <button
+                  key={size}
+                  type="button"
+                  onClick={() => handleChooseGridSize(size)}
+                  className="rounded-xl border border-yellow-400 py-3 text-yellow-400 font-bold hover:bg-yellow-400 hover:text-black transition"
+                >
+                  {size} Blocks
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => handleChooseGridSize(mosaicGridSize)}
+              className="text-sm text-yellow-400 underline"
+            >
+              Use default ({mosaicGridSize} blocks)
+            </button>
+          </div>
+        </div>
+      )}
+
       {showMosaic && (
         <div className="fixed inset-0 bg-black flex justify-center items-center animate-fadeIn z-50">
           <div className="bg-gray-900 rounded-3xl p-8 max-w-md text-center border-3 border-yellow-400 shadow-2xl shadow-yellow-400/30">
@@ -123,7 +178,7 @@ const HabitTracker = ({
               imageSrc={imageSrc}
               filledSquares={entries.length}
               onComplete={() => window.setTimeout(() => setShowMosaic(false), 3000)}
-              gridSize={mosaicGridSize}
+              gridSize={gridSize}
             />
             <div className="text-yellow-400 text-sm">Keep building your hive! 🐝</div>
             <button
