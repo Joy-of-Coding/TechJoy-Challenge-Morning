@@ -1,4 +1,11 @@
 import { useState } from "react";
+import { useLocalStorage } from "../hooks/useLocalStorage";
+import { countWeeklyItems } from "../utils/dateCounts";
+import {
+  DEFAULT_SESSION_GOALS,
+  SESSION_GOALS_STORAGE_KEY,
+  SESSION_MAX,
+} from "../utils/habitConfig";
 import MosaicReveal from "./MosaicReveal";
 
 const HabitTracker = ({
@@ -9,12 +16,70 @@ const HabitTracker = ({
   entryLabel,
   placeholder,
   unit,
-  mosaicGridSize = 4,
+  // habitKey drives the session goal read from localStorage
+  habitKey = "coding",
   inspoQuote,
   clearWarning = "Are you sure you want to clear all your data? This cannot be undone.",
 }) => {
   const [value, setValue] = useState("");
   const [showMosaic, setShowMosaic] = useState(false);
+  const [sessionGoals, setSessionGoals] = useLocalStorage(
+    SESSION_GOALS_STORAGE_KEY,
+    DEFAULT_SESSION_GOALS,
+  );
+  const [goalLimitMessage, setGoalLimitMessage] = useState("");
+  const [showGoalIncreasePrompt, setShowGoalIncreasePrompt] = useState(false);
+  const [showGoalIncreaseForm, setShowGoalIncreaseForm] = useState(false);
+  const [goalIncreaseValue, setGoalIncreaseValue] = useState("");
+  const [goalIncreaseError, setGoalIncreaseError] = useState("");
+
+  const weeklySessionCount = countWeeklyItems(entries);
+  const sessionGoal = sessionGoals[habitKey] ?? SESSION_MAX;
+
+  const resetGoalPromptState = () => {
+    setShowGoalIncreasePrompt(false);
+    setShowGoalIncreaseForm(false);
+    setGoalIncreaseValue("");
+    setGoalIncreaseError("");
+  };
+
+  const startGoalIncrease = () => {
+    if (sessionGoal >= SESSION_MAX) {
+      setShowGoalIncreaseForm(false);
+      setGoalIncreaseError(
+        `You are already at the maximum weekly goal of ${SESSION_MAX} sessions.`,
+      );
+      return;
+    }
+
+    setGoalIncreaseError("");
+    setShowGoalIncreaseForm(true);
+    setGoalIncreaseValue(String(Math.min(sessionGoal + 1, SESSION_MAX)));
+  };
+
+  const submitGoalIncrease = () => {
+    const nextGoal = Number(goalIncreaseValue);
+
+    if (!Number.isInteger(nextGoal) || nextGoal <= sessionGoal) {
+      setGoalIncreaseError(
+        "New weekly goal must be greater than your current goal.",
+      );
+      return;
+    }
+
+    if (nextGoal > SESSION_MAX) {
+      setGoalIncreaseError(
+        `New weekly goal cannot be more than ${SESSION_MAX} sessions.`,
+      );
+      return;
+    }
+
+    setSessionGoals((prev) => ({ ...prev, [habitKey]: nextGoal }));
+    setGoalLimitMessage(
+      `Great choice! Weekly goal increased to ${nextGoal} sessions.`,
+    );
+    resetGoalPromptState();
+  };
 
   // Check if user has already logged an entry today
   const hasLoggedToday = () => {
@@ -32,6 +97,16 @@ const HabitTracker = ({
     e.preventDefault();
     if (!value) return;
 
+    if (weeklySessionCount >= sessionGoal) {
+      setGoalLimitMessage(
+        "Congratulations! You met your weekly goal. Do you want to increase it for this week?",
+      );
+      setShowGoalIncreasePrompt(true);
+      setShowGoalIncreaseForm(false);
+      setGoalIncreaseError("");
+      return;
+    }
+
     const newEntry = {
       value: parseFloat(value),
       time: new Date().toLocaleTimeString([], {
@@ -44,6 +119,8 @@ const HabitTracker = ({
     setEntries([...entries, newEntry]);
     setValue("");
     setShowMosaic(true);
+    setGoalLimitMessage("");
+    resetGoalPromptState();
 
     // Dispatch custom event to notify dashboard of data update
     window.dispatchEvent(new CustomEvent("habitDataUpdated"));
@@ -55,6 +132,16 @@ const HabitTracker = ({
   const handleClearData = () => {
     if (window.confirm(clearWarning)) {
       setEntries([]);
+      setSessionGoals((prev) => ({
+        ...prev,
+        [habitKey]: DEFAULT_SESSION_GOALS[habitKey] ?? SESSION_MAX,
+      }));
+      setGoalLimitMessage("");
+      resetGoalPromptState();
+      setShowMosaic(false);
+
+      // Notify views that read persisted habit state outside this component.
+      window.dispatchEvent(new CustomEvent("habitDataUpdated"));
     }
   };
 
@@ -98,9 +185,9 @@ const HabitTracker = ({
             </div>
             <MosaicReveal
               imageSrc={imageSrc}
-              filledSquares={entries.length}
+              filledSquares={weeklySessionCount}
               onComplete={() => setTimeout(() => setShowMosaic(false), 3000)}
-              gridSize={mosaicGridSize}
+              totalSquares={sessionGoal}
             />
             <div className="text-yellow-400 text-sm">
               Keep building your hive! 🐝
@@ -138,6 +225,9 @@ const HabitTracker = ({
                 </span>
               )}
             </div>
+            <div className="text-yellow-300 text-xs mt-2">
+              Weekly sessions: {weeklySessionCount}/{sessionGoal}
+            </div>
           </div>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -160,6 +250,72 @@ const HabitTracker = ({
             >
               Add to Hive
             </button>
+
+            {goalLimitMessage && (
+              <div
+                className="text-sm rounded-lg border border-yellow-400 bg-yellow-900/30 p-3 text-yellow-100"
+                role="alert"
+              >
+                {goalLimitMessage}
+              </div>
+            )}
+
+            {showGoalIncreasePrompt && (
+              <div className="rounded-lg border border-yellow-400 bg-gray-800 p-3 text-left">
+                <p className="text-yellow-200 text-sm mb-3">
+                  Increase weekly goal?
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={startGoalIncrease}
+                    className="px-3 py-2 rounded bg-yellow-400 text-black font-semibold hover:bg-yellow-300"
+                  >
+                    Yes, increase goal
+                  </button>
+                  <button
+                    type="button"
+                    onClick={resetGoalPromptState}
+                    className="px-3 py-2 rounded border border-yellow-500 text-yellow-300 hover:bg-yellow-950"
+                  >
+                    No, keep goal
+                  </button>
+                </div>
+
+                {showGoalIncreaseForm && (
+                  <div className="mt-3">
+                    <label
+                      className="block text-xs text-yellow-300 mb-1"
+                      htmlFor="goal-increase-input"
+                    >
+                      New weekly goal ({sessionGoal + 1}-{SESSION_MAX})
+                    </label>
+                    <input
+                      id="goal-increase-input"
+                      type="number"
+                      min={sessionGoal + 1}
+                      max={SESSION_MAX}
+                      value={goalIncreaseValue}
+                      onChange={(e) => setGoalIncreaseValue(e.target.value)}
+                      className="w-full p-2 rounded border border-yellow-400 bg-black text-yellow-200"
+                    />
+                    <button
+                      type="button"
+                      onClick={submitGoalIncrease}
+                      className="mt-2 px-3 py-2 rounded bg-green-500 text-black font-semibold hover:bg-green-400"
+                    >
+                      Update weekly goal
+                    </button>
+                  </div>
+                )}
+
+                {goalIncreaseError && (
+                  <p className="text-red-400 text-xs mt-2" role="alert">
+                    {goalIncreaseError}
+                  </p>
+                )}
+              </div>
+            )}
           </form>
 
           <section className="mt-8">

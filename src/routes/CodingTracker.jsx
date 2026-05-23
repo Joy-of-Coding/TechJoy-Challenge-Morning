@@ -7,7 +7,7 @@ const codingConfig = {
   entryLabel: "How many hours did you code?",
   placeholder: "e.g. 2.5",
   unit: "h",
-  mosaicGridSize: 4,
+  habitKey: "coding",
   clearWarning:
     "Are you sure you want to clear all your coding data? This cannot be undone.",
   inspoQuote: "You've been a busy coding bee!",

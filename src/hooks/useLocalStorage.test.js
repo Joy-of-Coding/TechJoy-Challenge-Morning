@@ -5,6 +5,7 @@ import { useLocalStorage } from "./useLocalStorage";
 describe("useLocalStorage Hook Tests", () => {
   beforeEach(() => {
     window.localStorage.clear();
+    vi.clearAllMocks();
     window.localStorage.getItem.mockClear();
     window.localStorage.setItem.mockClear();
     window.localStorage.removeItem.mockClear();
@@ -55,28 +56,25 @@ describe("useLocalStorage Hook Tests", () => {
   });
 
   it("should handle localStorage getItem errors gracefully", () => {
-    const originalGetItem = window.localStorage.getItem;
-    window.localStorage.getItem = vi.fn(() => {
+    window.localStorage.getItem.mockImplementationOnce(() => {
       throw new Error("localStorage not available");
     });
     const { result } = renderHook(() =>
       useLocalStorage("test-key", ["fallback"]),
     );
     expect(result.current[0]).toEqual(["fallback"]);
-    window.localStorage.getItem = originalGetItem;
   });
 
   it("should handle localStorage setItem errors gracefully", () => {
     const { result } = renderHook(() => useLocalStorage("test-key", []));
-    const originalSetItem = window.localStorage.setItem;
-    window.localStorage.setItem = vi.fn(() => {
+    window.localStorage.setItem.mockImplementationOnce(() => {
       throw new Error("localStorage write failed");
     });
     act(() => {
       result.current[1](["new-data"]);
     });
+    // State still updates even if persistence fails.
     expect(result.current[0]).toEqual(["new-data"]);
-    window.localStorage.setItem = originalSetItem;
   });
 
   it("should handle JSON parsing errors gracefully", () => {

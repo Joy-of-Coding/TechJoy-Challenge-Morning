@@ -16,11 +16,13 @@ export const useLocalStorage = (key, initialValue) => {
   // Return a wrapped version of useState's setter function that persists the new value to localStorage
   const setValue = (value) => {
     try {
-      // Allow value to be a function so we have the same API as useState
-      const valueToStore =
-        value instanceof Function ? value(storedValue) : value;
-      setStoredValue(valueToStore);
-      window.localStorage.setItem(key, JSON.stringify(valueToStore));
+      // Compute from the latest state to avoid stale closures with functional updates
+      setStoredValue((prevValue) => {
+        const valueToStore =
+          value instanceof Function ? value(prevValue) : value;
+        window.localStorage.setItem(key, JSON.stringify(valueToStore));
+        return valueToStore;
+      });
     } catch (error) {
       console.error(`Error setting localStorage key "${key}":`, error);
     }

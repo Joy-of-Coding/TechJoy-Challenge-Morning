@@ -2,8 +2,13 @@ import {
   saveEntriesToStorage,
   loadEntriesFromStorage,
   clearEntriesFromStorage,
+  resetSessionGoalsToDefault,
 } from "./localStorage";
 import { describe, it, expect, beforeEach, vi } from "vitest";
+import {
+  DEFAULT_SESSION_GOALS,
+  SESSION_GOALS_STORAGE_KEY,
+} from "./habitConfig";
 
 // Mock localStorage
 const localStorageMock = {
@@ -18,6 +23,9 @@ Object.defineProperty(window, "localStorage", {
 });
 
 describe("Local Storage Utils", () => {
+  const category = "coding";
+  const storageKey = "habit-hive-coding-entries";
+
   beforeEach(() => {
     localStorageMock.getItem.mockClear();
     localStorageMock.setItem.mockClear();
@@ -26,9 +34,9 @@ describe("Local Storage Utils", () => {
 
   it("saveEntriesToStorage should save entries to localStorage", () => {
     const testEntries = [{ hours: 2.5, time: "10:30" }];
-    saveEntriesToStorage(testEntries);
+    saveEntriesToStorage(testEntries, category);
     expect(localStorageMock.setItem).toHaveBeenCalledWith(
-      "habit-hive-entries",
+      storageKey,
       JSON.stringify(testEntries),
     );
   });
@@ -38,26 +46,26 @@ describe("Local Storage Utils", () => {
       throw new Error("localStorage not available");
     });
     expect(() => {
-      saveEntriesToStorage([{ hours: 1.0, time: "10:00" }]);
+      saveEntriesToStorage([{ hours: 1.0, time: "10:00" }], category);
     }).not.toThrow();
   });
 
   it("loadEntriesFromStorage should return empty array when no data exists", () => {
     localStorageMock.getItem.mockReturnValue(null);
-    const result = loadEntriesFromStorage();
+    const result = loadEntriesFromStorage(category);
     expect(result).toEqual([]);
   });
 
   it("loadEntriesFromStorage should return parsed entries when data exists", () => {
     const testEntries = [{ hours: 2.5, time: "10:30" }];
     localStorageMock.getItem.mockReturnValue(JSON.stringify(testEntries));
-    const result = loadEntriesFromStorage();
+    const result = loadEntriesFromStorage(category);
     expect(result).toEqual(testEntries);
   });
 
   it("loadEntriesFromStorage should handle JSON parsing errors gracefully", () => {
     localStorageMock.getItem.mockReturnValue("invalid-json");
-    const result = loadEntriesFromStorage();
+    const result = loadEntriesFromStorage(category);
     expect(result).toEqual([]);
   });
 
@@ -65,15 +73,13 @@ describe("Local Storage Utils", () => {
     localStorageMock.getItem.mockImplementation(() => {
       throw new Error("localStorage not available");
     });
-    const result = loadEntriesFromStorage();
+    const result = loadEntriesFromStorage(category);
     expect(result).toEqual([]);
   });
 
   it("clearEntriesFromStorage should remove entries from localStorage", () => {
-    clearEntriesFromStorage();
-    expect(localStorageMock.removeItem).toHaveBeenCalledWith(
-      "habit-hive-entries",
-    );
+    clearEntriesFromStorage(category);
+    expect(localStorageMock.removeItem).toHaveBeenCalledWith(storageKey);
   });
 
   it("clearEntriesFromStorage should handle localStorage errors gracefully", () => {
@@ -81,7 +87,15 @@ describe("Local Storage Utils", () => {
       throw new Error("localStorage not available");
     });
     expect(() => {
-      clearEntriesFromStorage();
+      clearEntriesFromStorage(category);
     }).not.toThrow();
+  });
+
+  it("resetSessionGoalsToDefault should restore the default session goals", () => {
+    resetSessionGoalsToDefault();
+    expect(localStorageMock.setItem).toHaveBeenCalledWith(
+      SESSION_GOALS_STORAGE_KEY,
+      JSON.stringify(DEFAULT_SESSION_GOALS),
+    );
   });
 });

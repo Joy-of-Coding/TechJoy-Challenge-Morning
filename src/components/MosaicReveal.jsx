@@ -5,11 +5,13 @@ const MosaicReveal = ({
   imageSrc,
   filledSquares = 0,
   onComplete,
-  gridSize = 4,
+  totalSquares = 16,
+  maintainSquareGrid = false,
 }) => {
   const [revealedSquares, setRevealedSquares] = useState([]);
-  const totalSquares = gridSize * gridSize;
-  const showFullImage = filledSquares >= 16;
+  const cols = Math.ceil(Math.sqrt(totalSquares));
+  const rows = Math.ceil(totalSquares / cols);
+  const showFullImage = filledSquares >= totalSquares;
 
   useEffect(() => {
     // Update revealed squares based on filledSquares prop
@@ -30,20 +32,19 @@ const MosaicReveal = ({
 
     if (isRevealed) {
       // Calculate the position of this square in the image
-      const row = Math.floor(index / gridSize);
-      const col = index % gridSize;
-      const sizePercent = 100 / gridSize;
+      const row = Math.floor(index / cols);
+      const col = index % cols;
 
       return {
         backgroundImage: `url(${imageSrc})`,
-        backgroundSize: `${gridSize * 100}%`,
-        backgroundPosition: `${col * sizePercent}% ${row * sizePercent}%`,
+        backgroundSize: `${cols * 100}% ${rows * 100}%`,
+        backgroundPosition: `${col * (100 / cols)}% ${row * (100 / rows)}%`,
         backgroundRepeat: "no-repeat",
         opacity: 1,
         transition: "opacity 0.3s ease-in-out, filter 0.3s ease-in-out",
         width: "100%",
         height: "100%",
-        minHeight: "40px",
+        minHeight: maintainSquareGrid ? "0" : "40px",
         filter: "blur(3px)", // Add blur to revealed squares
       };
     }
@@ -53,7 +54,7 @@ const MosaicReveal = ({
       transition: "opacity 0.3s ease-in-out, filter 0.3s ease-in-out",
       width: "100%",
       height: "100%",
-      minHeight: "40px", // Ensure minimum size for visibility
+      minHeight: maintainSquareGrid ? "0" : "40px", // Ensure minimum size for visibility
     };
   };
 
@@ -87,8 +88,11 @@ const MosaicReveal = ({
       <div
         className="relative grid gap-1 rounded-lg overflow-hidden"
         style={{
-          gridTemplateColumns: `repeat(${gridSize}, 1fr)`,
-          aspectRatio: "1/1",
+          gridTemplateColumns: `repeat(${cols}, 1fr)`,
+          gridTemplateRows: maintainSquareGrid
+            ? `repeat(${rows}, minmax(0, 1fr))`
+            : undefined,
+          aspectRatio: maintainSquareGrid ? `${cols}/${rows}` : undefined,
           width: "100%",
         }}
       >
@@ -108,7 +112,7 @@ const MosaicReveal = ({
       {/* Completion count indicator */}
       {filledSquares === totalSquares && (
         <div className="absolute top-2 right-2 bg-blue-600/90 text-white px-2 py-1 rounded text-xs">
-          {filledSquares}/16
+          {filledSquares}/{totalSquares}
         </div>
       )}
     </div>

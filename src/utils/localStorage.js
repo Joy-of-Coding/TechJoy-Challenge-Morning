@@ -1,3 +1,8 @@
+import {
+  DEFAULT_SESSION_GOALS,
+  SESSION_GOALS_STORAGE_KEY,
+} from "./habitConfig";
+
 const STORAGE_KEYS = {
   coding: "habit-hive-coding-entries",
   physical: "habit-hive-physical-entries",
@@ -81,6 +86,17 @@ export const clearAllEntries = () => {
   clearCodingEntries();
   clearPhysicalEntries();
   clearMentalHealthEntries();
+};
+
+export const resetSessionGoalsToDefault = () => {
+  try {
+    localStorage.setItem(
+      SESSION_GOALS_STORAGE_KEY,
+      JSON.stringify(DEFAULT_SESSION_GOALS),
+    );
+  } catch (error) {
+    console.error("Failed to reset session goals in localStorage:", error);
+  }
 };
 
 // Get storage stats

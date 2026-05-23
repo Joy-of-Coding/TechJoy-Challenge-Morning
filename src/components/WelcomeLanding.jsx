@@ -65,7 +65,8 @@ const WelcomeLanding = () => {
               <MosaicReveal
                 imageSrc={programmingBee}
                 filledSquares={3}
-                gridSize={4}
+                totalSquares={16}
+                maintainSquareGrid
               />
             </div>
           </div>
@@ -94,7 +95,8 @@ const WelcomeLanding = () => {
                 <MosaicReveal
                   imageSrc={programmingBee}
                   filledSquares={2}
-                  gridSize={4}
+                  totalSquares={16}
+                  maintainSquareGrid
                 />
               </div>
               <Link
@@ -123,7 +125,8 @@ const WelcomeLanding = () => {
                 <MosaicReveal
                   imageSrc={flashdanceBee}
                   filledSquares={1}
-                  gridSize={4}
+                  totalSquares={16}
+                  maintainSquareGrid
                 />
               </div>
               <Link
@@ -151,7 +154,8 @@ const WelcomeLanding = () => {
                 <MosaicReveal
                   imageSrc={meditatingBee}
                   filledSquares={1}
-                  gridSize={4}
+                  totalSquares={16}
+                  maintainSquareGrid
                 />
               </div>
               <Link

@@ -1,6 +1,6 @@
 import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render } from "@testing-library/react";
 import "@testing-library/jest-dom";
 
 import MosaicReveal from "./MosaicReveal";
@@ -32,7 +32,11 @@ describe("MosaicReveal", () => {
 
   it("handles negative filledSquares value", () => {
     const { container } = render(
-      <MosaicReveal imageSrc={mockImageSrc} filledSquares={-1} gridSize={4} />,
+      <MosaicReveal
+        imageSrc={mockImageSrc}
+        filledSquares={-1}
+        totalSquares={16}
+      />,
     );
     const revealedSquares = container.querySelectorAll('[style*="opacity: 1"]');
     expect(revealedSquares).toHaveLength(0); // No squares should be revealed
@@ -40,29 +44,40 @@ describe("MosaicReveal", () => {
 
   it("handles filledSquares greater than total squares", () => {
     const { container } = render(
-      <MosaicReveal imageSrc={mockImageSrc} filledSquares={20} gridSize={4} />,
+      <MosaicReveal
+        imageSrc={mockImageSrc}
+        filledSquares={20}
+        totalSquares={16}
+      />,
     );
-    const revealedSquares = container.querySelectorAll('[style*="opacity: 1"]');
-    expect(revealedSquares).toHaveLength(16); // Should cap at total squares
+    const squares = container.querySelectorAll(".bg-gray-800");
+    expect(squares).toHaveLength(0); // Full image mode replaces the grid
+
+    const fullImage = container.querySelector(".bg-cover.bg-center");
+    expect(fullImage).toBeInTheDocument();
   });
 
-  it("maintains aspect ratio with different grid sizes", () => {
+  it("renders correct grid columns for given totalSquares", () => {
     const { container } = render(
-      <MosaicReveal imageSrc={mockImageSrc} gridSize={3} />,
+      <MosaicReveal imageSrc={mockImageSrc} totalSquares={9} />,
     );
     const grid = container.querySelector(".grid");
     expect(grid).toHaveStyle({
-      aspectRatio: "1/1",
+      gridTemplateColumns: "repeat(3, 1fr)",
     });
   });
 
   it("applies correct styles for revealed squares", () => {
     const { container } = render(
-      <MosaicReveal imageSrc={mockImageSrc} filledSquares={1} gridSize={4} />,
+      <MosaicReveal
+        imageSrc={mockImageSrc}
+        filledSquares={1}
+        totalSquares={16}
+      />,
     );
 
     const firstSquare = container.querySelector(".bg-gray-800");
-    const computedStyle = window.getComputedStyle(firstSquare);
+    // const computedStyle = window.getComputedStyle(firstSquare);
 
     expect(firstSquare).toHaveStyle({
       backgroundImage: `url(${mockImageSrc})`,
@@ -73,7 +88,11 @@ describe("MosaicReveal", () => {
 
   it("applies correct styles for unrevealed squares", () => {
     const { container } = render(
-      <MosaicReveal imageSrc={mockImageSrc} filledSquares={0} gridSize={4} />,
+      <MosaicReveal
+        imageSrc={mockImageSrc}
+        filledSquares={0}
+        totalSquares={16}
+      />,
     );
 
     const firstSquare = container.querySelector(".bg-gray-800");
@@ -83,31 +102,36 @@ describe("MosaicReveal", () => {
   });
 
   it("calculates correct background position for revealed squares", () => {
-    const gridSize = 4;
+    const totalSquares = 16;
+    const cols = 4;
+    const rows = 4;
     const { container } = render(
       <MosaicReveal
         imageSrc={mockImageSrc}
         filledSquares={16}
-        gridSize={gridSize}
+        totalSquares={totalSquares}
       />,
     );
 
     const squares = container.querySelectorAll(".bg-gray-800");
     squares.forEach((square, index) => {
-      const row = Math.floor(index / gridSize);
-      const col = index % gridSize;
-      const sizePercent = 100 / gridSize;
+      const row = Math.floor(index / cols);
+      const col = index % cols;
 
       expect(square).toHaveStyle({
-        backgroundPosition: `${col * sizePercent}% ${row * sizePercent}%`,
-        backgroundSize: `${gridSize * 100}%`,
+        backgroundPosition: `${col * (100 / cols)}% ${row * (100 / rows)}%`,
+        backgroundSize: `${cols * 100}% ${rows * 100}%`,
       });
     });
   });
 
   it("updates revealed squares when filledSquares prop changes", () => {
     const { rerender, container } = render(
-      <MosaicReveal imageSrc={mockImageSrc} filledSquares={0} gridSize={4} />,
+      <MosaicReveal
+        imageSrc={mockImageSrc}
+        filledSquares={0}
+        totalSquares={16}
+      />,
     );
 
     // Initially all squares should be unrevealed
@@ -116,7 +140,11 @@ describe("MosaicReveal", () => {
 
     // Update filledSquares
     rerender(
-      <MosaicReveal imageSrc={mockImageSrc} filledSquares={4} gridSize={4} />,
+      <MosaicReveal
+        imageSrc={mockImageSrc}
+        filledSquares={4}
+        totalSquares={16}
+      />,
     );
 
     revealedSquares = container.querySelectorAll('[style*="opacity: 1"]');
@@ -127,88 +155,82 @@ describe("MosaicReveal", () => {
     const { container } = render(<MosaicReveal imageSrc={mockImageSrc} />);
 
     const backgroundDiv = container.querySelector(".absolute.inset-0");
-    expect(backgroundDiv.style.backgroundImage).to.equal(
-      'url("mocked-beehive-image.png")',
-    );
-    expect(backgroundDiv.style.filter).to.equal("blur(4px) brightness(0.3)");
-  });
-  it("displays completion count indicator when completionCount > 0", () => {
-    const { container } = render(
-      <MosaicReveal imageSrc={mockImageSrc} completionCount={5} />,
-    );
-
-    const completionIndicator = container.querySelector(".bg-blue-600\\/90");
-    expect(completionIndicator).toHaveTextContent("5/16");
+    expect(backgroundDiv).toHaveStyle({
+      backgroundImage: 'url("mocked-beehive-image.png")',
+      filter: "blur(4px) brightness(0.3)",
+    });
   });
 
-  it("does not display completion count indicator when completionCount is 0", () => {
+  it("does not display completion indicator when full-image mode is active", () => {
     const { container } = render(
-      <MosaicReveal imageSrc={mockImageSrc} completionCount={0} />,
+      <MosaicReveal
+        imageSrc={mockImageSrc}
+        filledSquares={16}
+        totalSquares={16}
+      />,
     );
 
     const completionIndicator = container.querySelector(".bg-blue-600\\/90");
     expect(completionIndicator).not.toBeInTheDocument();
   });
 
-  it("shows full unblurred image when completionCount >= 16", () => {
+  it("does not display completion count indicator before completion", () => {
     const { container } = render(
       <MosaicReveal
         imageSrc={mockImageSrc}
-        completionCount={16}
-        filledSquares={10}
+        filledSquares={8}
+        totalSquares={16}
       />,
     );
 
-    // Should not render mosaic grid
-    const squares = container.querySelectorAll(".bg-gray-800");
-    expect(squares).toHaveLength(16);
+    const completionIndicator = container.querySelector(".bg-blue-600\\/90");
+    expect(completionIndicator).not.toBeInTheDocument();
+  });
 
-    // Should render full image
+  it("shows full unblurred image when filledSquares >= totalSquares", () => {
+    const { container } = render(
+      <MosaicReveal
+        imageSrc={mockImageSrc}
+        filledSquares={16}
+        totalSquares={16}
+      />,
+    );
+
+    const squares = container.querySelectorAll(".bg-gray-800");
+    expect(squares).toHaveLength(0);
+
     const fullImage = container.querySelector(".bg-cover.bg-center");
     expect(fullImage).toHaveStyle({
       backgroundImage: `url(${mockImageSrc})`,
       aspectRatio: "1/1",
     });
-
-    // Should show unlocked badge
-    const unlockedBadge = container.querySelector(".bg-green-600\\/90");
-    expect(unlockedBadge).toBeInTheDocument();
-    expect(unlockedBadge).toHaveTextContent("Unlocked!");
-
-    // Should still show progress indicator
-    const progressIndicator = container.querySelector(".bg-black\\/70");
-    expect(progressIndicator).toBeInTheDocument();
-    expect(progressIndicator).toHaveTextContent("10/16");
   });
 
-  it("shows full unblurred image when completionCount > 16", () => {
+  it("shows full unblurred image when filledSquares > totalSquares", () => {
     const { container } = render(
       <MosaicReveal
         imageSrc={mockImageSrc}
-        completionCount={20}
-        filledSquares={16}
+        filledSquares={20}
+        totalSquares={16}
       />,
     );
 
-    // Should not render mosaic grid
     const squares = container.querySelectorAll(".bg-gray-800");
     expect(squares).toHaveLength(0);
 
-    // Should render full image
     const fullImage = container.querySelector(".bg-cover.bg-center");
     expect(fullImage).toBeInTheDocument();
   });
 
-  it("removes blur from revealed squares when completionCount >= 16", () => {
+  it("keeps blur on revealed squares while mosaic is still shown", () => {
     const { container } = render(
       <MosaicReveal
         imageSrc={mockImageSrc}
-        completionCount={15}
         filledSquares={1}
+        totalSquares={16}
       />,
     );
 
-    // With completionCount < 16, squares should still be blurred
     const firstSquare = container.querySelector(".bg-gray-800");
     expect(firstSquare).toHaveStyle({
       filter: "blur(3px)",
@@ -217,7 +239,11 @@ describe("MosaicReveal", () => {
 
   it("maintains aspect ratio for full image view", () => {
     const { container } = render(
-      <MosaicReveal imageSrc={mockImageSrc} completionCount={16} />,
+      <MosaicReveal
+        imageSrc={mockImageSrc}
+        filledSquares={16}
+        totalSquares={16}
+      />,
     );
 
     const fullImage = container.querySelector(".bg-cover.bg-center");
@@ -232,7 +258,7 @@ describe("MosaicReveal", () => {
         imageSrc={mockImageSrc}
         filledSquares={16}
         onComplete={mockOnComplete}
-        gridSize={4}
+        totalSquares={16}
       />,
     );
 
@@ -248,7 +274,7 @@ describe("MosaicReveal", () => {
         imageSrc={mockImageSrc}
         filledSquares={15}
         onComplete={mockOnComplete}
-        gridSize={4}
+        totalSquares={16}
       />,
     );
 
@@ -259,7 +285,11 @@ describe("MosaicReveal", () => {
 
   it("does not call onComplete when onComplete prop is not provided", () => {
     const { container } = render(
-      <MosaicReveal imageSrc={mockImageSrc} filledSquares={16} gridSize={4} />,
+      <MosaicReveal
+        imageSrc={mockImageSrc}
+        filledSquares={16}
+        totalSquares={16}
+      />,
     );
 
     vi.runAllTimers();

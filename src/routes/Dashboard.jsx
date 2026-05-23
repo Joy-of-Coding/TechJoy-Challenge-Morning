@@ -4,28 +4,30 @@ import WelcomeLanding from "../components/WelcomeLanding";
 import programmingBee from "../assets/programmingBee.jpg";
 import flashdanceBee from "../assets/flashdanceBee.jpg";
 import meditatingBee from "../assets/meditatingBee.jpg";
+import { useLocalStorage } from "../hooks/useLocalStorage";
 import { loadAllEntries } from "../utils/localStorage";
+import { countWeeklyItems } from "../utils/dateCounts";
+import {
+  DEFAULT_SESSION_GOALS,
+  HABIT_CATEGORY_CONFIGS,
+  SESSION_GOAL_ERROR_MESSAGES,
+  SESSION_GOALS_STORAGE_KEY,
+  SESSION_MAX,
+  SESSION_MIN,
+  getSessionGoalErrorMessage,
+} from "../utils/habitConfig";
 
-const HABIT_CATEGORIES = [
-  {
-    name: "Coding",
-    key: "coding",
-    image: programmingBee,
-    goal: 16,
-  },
-  {
-    name: "Physical Health",
-    key: "physical",
-    image: flashdanceBee,
-    goal: 16,
-  },
-  {
-    name: "Mental Health",
-    key: "mental",
-    image: meditatingBee,
-    goal: 16,
-  },
-];
+const HABIT_CATEGORIES = HABIT_CATEGORY_CONFIGS.map((category) => ({
+  key: category.key,
+  name: category.dashboardName,
+  image:
+    category.key === "coding"
+      ? programmingBee
+      : category.key === "physical"
+        ? flashdanceBee
+        : meditatingBee,
+  goal: SESSION_MAX,
+}));
 
 // FIXED: Regular function (React.memo is for components, not functions)
 const getHabitData = () => {
@@ -44,18 +46,6 @@ const getHabitData = () => {
       mental: [],
     };
   }
-};
-
-const getSevenDayTotal = (timestamps) => {
-  if (!Array.isArray(timestamps)) return 0;
-
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-  return timestamps.filter((timestamp) => {
-    const entryDate = new Date(timestamp);
-    return entryDate >= sevenDaysAgo;
-  }).length;
 };
 
 const getRecentActivity = () => {
@@ -109,11 +99,52 @@ const Dashboard = ({
   const [habitData, setHabitData] = React.useState(() => getHabitData());
   const [recentActivity, setRecentActivity] = React.useState([]);
   const [isLoading, setIsLoading] = React.useState(false);
+  const isUpdatingRef = React.useRef(false);
+
+  const [sessionGoals, setSessionGoals] = useLocalStorage(
+    SESSION_GOALS_STORAGE_KEY,
+    DEFAULT_SESSION_GOALS,
+  );
+  const [sessionErrors, setSessionErrors] = React.useState(() =>
+    Object.fromEntries(HABIT_CATEGORIES.map((c) => [c.key, ""])),
+  );
+
+  const handleSessionGoalChange = React.useCallback(
+    (key, value) => {
+      const num = Number(value);
+      const currentGoal = sessionGoals[key] ?? SESSION_MAX;
+      const weeklyTotal = countWeeklyItems(habitData[key]);
+      const isGoalAchieved = weeklyTotal >= currentGoal;
+
+      if (isGoalAchieved && num < currentGoal) {
+        setSessionErrors((prev) => ({
+          ...prev,
+          [key]: SESSION_GOAL_ERROR_MESSAGES.achievedLock,
+        }));
+        return;
+      }
+
+      const errorMessage = getSessionGoalErrorMessage(num);
+
+      if (errorMessage) {
+        setSessionErrors((prev) => ({
+          ...prev,
+          [key]: errorMessage,
+        }));
+      } else {
+        setSessionErrors((prev) => ({ ...prev, [key]: "" }));
+        setSessionGoals((prev) => ({ ...prev, [key]: num }));
+      }
+    },
+    [habitData, sessionGoals, setSessionErrors, setSessionGoals],
+  );
 
   // OPTIMIZED: Memoized update function to prevent unnecessary re-creations
   const updateHabitData = React.useCallback(() => {
-    if (isLoading) return; // Prevent multiple simultaneous updates
+    // Replaced: if (isLoading) return;
+    if (isUpdatingRef.current) return; // Prevent multiple simultaneous updates
 
+    isUpdatingRef.current = true;
     setIsLoading(true);
     try {
       const newData = getHabitData();
@@ -125,8 +156,10 @@ const Dashboard = ({
       console.error("Error updating habit data:", error);
     } finally {
       setIsLoading(false);
+      isUpdatingRef.current = false;
     }
-  }, [isLoading]);
+  }, []);
+  // Replaced dependency list: [isLoading]
 
   // OPTIMIZED: Manual refresh only - removed aggressive polling
   const handleManualRefresh = React.useCallback(() => {
@@ -147,18 +180,6 @@ const Dashboard = ({
     return () =>
       window.removeEventListener("habitDataUpdated", onCustomStorage);
   }, [updateHabitData]);
-
-  // OPTIMIZED: Only update when props actually change, with deep comparison
-  const propsDataString = React.useMemo(() => {
-    return JSON.stringify({
-      entries: entries.map((e) => ({
-        date: e.date,
-        value: e.value || e.hours,
-      })),
-      physical: physicalEntries.map((e) => ({ date: e.date, value: e.value })),
-      mental: mentalEntries.map((e) => ({ date: e.date, value: e.value })),
-    });
-  }, [entries, physicalEntries, mentalEntries]);
 
   React.useEffect(() => {
     const updatedData = {
@@ -202,17 +223,31 @@ const Dashboard = ({
 
     setHabitData(updatedData);
     setRecentActivity(sortedActivities);
-  }, [propsDataString]); // OPTIMIZED: Only re-run when stringified props actually change
+  }, [entries, physicalEntries, mentalEntries]);
+  // Replaced dependency list: [propsDataString]
+
+  // Replaced memo block:
+  // const propsDataString = React.useMemo(() => {
+  //   return JSON.stringify({
+  //     entries: entries.map((e) => ({
+  //       date: e.date,
+  //       value: e.value || e.hours,
+  //     })),
+  //     physical: physicalEntries.map((e) => ({ date: e.date, value: e.value })),
+  //     mental: mentalEntries.map((e) => ({ date: e.date, value: e.value })),
+  //   });
+  // }, [entries, physicalEntries, mentalEntries]);
 
   // OPTIMIZED: Initial load only, no polling
   React.useEffect(() => {
     updateHabitData();
-  }, []); // Empty dependency array - only run once on mount
+  }, [updateHabitData]);
+  // Replaced dependency list: []
 
   // OPTIMIZED: Memoized calculations to prevent unnecessary re-renders
   const sevenDayTotals = React.useMemo(() => {
     return HABIT_CATEGORIES.map((cat) => {
-      const total = getSevenDayTotal(habitData[cat.key]);
+      const total = countWeeklyItems(habitData[cat.key]);
       return {
         ...cat,
         total: total,
@@ -225,8 +260,13 @@ const Dashboard = ({
     return total;
   }, [sevenDayTotals]);
 
-  // Show welcome landing page if no progress
-  if (totalActions === 0) {
+  // Show welcome landing page only when no entries exist at all (any category, any time)
+  const hasAnyEntries =
+    entries.length > 0 ||
+    physicalEntries.length > 0 ||
+    mentalEntries.length > 0;
+
+  if (!hasAnyEntries) {
     return <WelcomeLanding />;
   }
 
@@ -252,8 +292,9 @@ const Dashboard = ({
       {/* Category Sections with MosaicReveal */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
         {sevenDayTotals.map((cat) => {
-          const progress = Math.min(cat.total, cat.goal);
-          const percentage = Math.round((progress / cat.goal) * 100);
+          const goal = sessionGoals[cat.key];
+          const progress = Math.min(cat.total, goal);
+          const percentage = Math.round((progress / goal) * 100);
 
           return (
             <div
@@ -266,9 +307,38 @@ const Dashboard = ({
                 </h2>
                 <div className="flex justify-between items-center text-sm text-yellow-200">
                   <span>
-                    Progress: {cat.total}/{cat.goal}
+                    Progress: {cat.total}/{goal}
                   </span>
                   <span>{percentage}%</span>
+                </div>
+                <div className="mt-3 text-left">
+                  {cat.total >= goal && (
+                    <p className="text-green-400 text-xs mb-1">
+                      Weekly goal achieved. You can only increase this goal.
+                    </p>
+                  )}
+                  <label
+                    htmlFor={`session-goal-${cat.key}`}
+                    className="block text-xs text-yellow-300 mb-1"
+                  >
+                    Sessions to unlock ({SESSION_MIN}–{SESSION_MAX})
+                  </label>
+                  <input
+                    id={`session-goal-${cat.key}`}
+                    type="number"
+                    min={cat.total >= goal ? goal : SESSION_MIN}
+                    max={SESSION_MAX}
+                    value={goal}
+                    onChange={(e) =>
+                      handleSessionGoalChange(cat.key, e.target.value)
+                    }
+                    className="w-full bg-black border border-yellow-400 text-yellow-200 rounded px-2 py-1 text-sm"
+                  />
+                  {sessionErrors[cat.key] && (
+                    <p className="text-red-400 text-xs mt-1">
+                      {sessionErrors[cat.key]}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -276,7 +346,7 @@ const Dashboard = ({
                 <MosaicReveal
                   imageSrc={cat.image}
                   filledSquares={progress}
-                  gridSize={4}
+                  totalSquares={sessionGoals[cat.key]}
                 />
               </div>
 
@@ -288,9 +358,9 @@ const Dashboard = ({
                   ></div>
                 </div>
                 <p className="text-yellow-200 text-sm">
-                  {cat.total >= cat.goal
+                  {cat.total >= goal
                     ? "Goal achieved! 🎉"
-                    : `${cat.goal - cat.total} more to reach your goal`}
+                    : `${goal - cat.total} more to reach your goal`}
                 </p>
               </div>
             </div>
@@ -314,7 +384,10 @@ const Dashboard = ({
             <div className="text-3xl font-bold text-yellow-400">
               {Math.round(
                 (totalActions /
-                  HABIT_CATEGORIES.reduce((sum, cat) => sum + cat.goal, 0)) *
+                  HABIT_CATEGORIES.reduce(
+                    (sum, cat) => sum + (sessionGoals[cat.key] ?? cat.goal),
+                    0,
+                  )) *
                   100,
               )}
               %
@@ -323,7 +396,11 @@ const Dashboard = ({
           </div>
           <div className="text-center">
             <div className="text-3xl font-bold text-yellow-400">
-              {sevenDayTotals.filter((cat) => cat.total >= cat.goal).length}
+              {
+                sevenDayTotals.filter(
+                  (cat) => cat.total >= (sessionGoals[cat.key] ?? cat.goal),
+                ).length
+              }
             </div>
             <div className="text-yellow-200">Goals Completed</div>
           </div>
