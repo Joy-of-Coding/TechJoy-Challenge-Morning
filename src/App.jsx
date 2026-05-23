@@ -28,7 +28,16 @@ function App() {
         <div className="flex justify-center">
           <main className="w-full max-w-4xl mx-auto p-4">
             <Routes>
-              <Route path="/" element={<Dashboard entries={codingEntries} />} />
+              <Route
+                path="/"
+                element={
+                  <Dashboard
+                    entries={codingEntries}
+                    physicalEntries={physicalEntries}
+                    mentalEntries={mentalEntries}
+                  />
+                }
+              />
               <Route
                 path="/coding"
                 element={
