@@ -15,6 +15,7 @@ const HabitTracker = ({
 }) => {
   const [value, setValue] = useState("");
   const [showMosaic, setShowMosaic] = useState(false);
+  const [gridSize, setGridSize] = useState(mosaicGridSize);
 
   // Check if user has already logged an entry today
   const hasLoggedToday = () => {
@@ -100,7 +101,7 @@ const HabitTracker = ({
               imageSrc={imageSrc}
               filledSquares={entries.length}
               onComplete={() => setTimeout(() => setShowMosaic(false), 3000)}
-              gridSize={mosaicGridSize}
+              gridSize={gridSize}
             />
             <div className="text-yellow-400 text-sm">
               Keep building your hive! 🐝
@@ -139,7 +140,22 @@ const HabitTracker = ({
               )}
             </div>
           </div>
-
+          <div className="mb-4 p-3 rounded-lg bg-gray-800 border border-yellow-400">
+            <label className="text-yellow-400 font-semibold">
+              Number of Goal Blocks (min 4)
+            </label>
+            <input
+              type="number"
+              min="2"
+              max="6"
+              value={gridSize}
+              onChange={(e) => setGridSize(Number(e.target.value))}
+              className="w-full p-2 mt-1 rounded-lg border-2 border-yellow-400 bg-gray-800 text-yellow-400 text-base"
+            />
+            <p className="text-yellow-400 text-xs mt-1">
+              {gridSize * gridSize} total blocks
+            </p>
+          </div>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <label>
               <span className="text-yellow-400">{entryLabel}</span>
@@ -184,11 +200,10 @@ const HabitTracker = ({
               {entries.map((entry, idx) => (
                 <div
                   key={idx}
-                  className={`hexagon p-2 sm:p-4 text-center shadow-lg font-bold text-xs sm:text-sm md:text-lg ${
-                    idx % 2 === 0
+                  className={`hexagon p-2 sm:p-4 text-center shadow-lg font-bold text-xs sm:text-sm md:text-lg ${idx % 2 === 0
                       ? "bg-yellow-400 text-black"
                       : "bg-black text-yellow-400"
-                  }`}
+                    }`}
                   style={{
                     clipPath:
                       "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",

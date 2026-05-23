@@ -9,7 +9,7 @@ const MosaicReveal = ({
 }) => {
   const [revealedSquares, setRevealedSquares] = useState([]);
   const totalSquares = gridSize * gridSize;
-  const showFullImage = filledSquares >= 16;
+  const showFullImage = filledSquares >= totalSquares;
 
   useEffect(() => {
     // Update revealed squares based on filledSquares prop
