@@ -5,6 +5,7 @@ import programmingBee from "../assets/programmingBee.jpg";
 import flashdanceBee from "../assets/flashdanceBee.jpg";
 import meditatingBee from "../assets/meditatingBee.jpg";
 import { loadAllEntries } from "../utils/localStorage";
+import { useLocalStorage } from "../hooks/useLocalStorage";
 
 const HABIT_CATEGORIES = [
   {
@@ -58,6 +59,12 @@ const getSevenDayTotal = (timestamps) => {
   }).length;
 };
 
+const getGridSizeForGoal = (goal) => {
+  return Math.max(2, Math.ceil(Math.sqrt(goal)));
+};
+
+const GOAL_OPTIONS = [4, 9, 16];
+
 const getRecentActivity = () => {
   try {
     const allEntries = loadAllEntries();
@@ -109,6 +116,27 @@ const Dashboard = ({
   const [habitData, setHabitData] = React.useState(() => getHabitData());
   const [recentActivity, setRecentActivity] = React.useState([]);
   const [isLoading, setIsLoading] = React.useState(false);
+  const [categoryGoals, setCategoryGoals] = useLocalStorage(
+    "habit-hive-category-goals",
+    {
+      coding: 16,
+      physical: 16,
+      mental: 16,
+    },
+  );
+
+  const categories = React.useMemo(
+    () =>
+      HABIT_CATEGORIES.map((cat) => {
+        const goal = categoryGoals[cat.key] ?? cat.goal;
+        return {
+          ...cat,
+          goal,
+          gridSize: getGridSizeForGoal(goal),
+        };
+      }),
+    [categoryGoals],
+  );
 
   // OPTIMIZED: Memoized update function to prevent unnecessary re-creations
   const updateHabitData = React.useCallback(() => {
@@ -202,23 +230,23 @@ const Dashboard = ({
 
     setHabitData(updatedData);
     setRecentActivity(sortedActivities);
-  }, [propsDataString]); // OPTIMIZED: Only re-run when stringified props actually change
+  }, [propsDataString, entries, physicalEntries, mentalEntries]); // OPTIMIZED: Only re-run when stringified props actually change
 
   // OPTIMIZED: Initial load only, no polling
   React.useEffect(() => {
     updateHabitData();
-  }, []); // Empty dependency array - only run once on mount
+  }, [updateHabitData]);
 
   // OPTIMIZED: Memoized calculations to prevent unnecessary re-renders
   const sevenDayTotals = React.useMemo(() => {
-    return HABIT_CATEGORIES.map((cat) => {
+    return categories.map((cat) => {
       const total = getSevenDayTotal(habitData[cat.key]);
       return {
         ...cat,
         total: total,
       };
     });
-  }, [habitData]);
+  }, [categories, habitData]);
 
   const totalActions = React.useMemo(() => {
     const total = sevenDayTotals.reduce((sum, cat) => sum + cat.total, 0);
@@ -232,10 +260,16 @@ const Dashboard = ({
 
   return (
     <div className="p-4 max-w-6xl mx-auto">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-yellow-400">
-          Your Habit Dashboard
-        </h1>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-yellow-400">
+            Your Habit Dashboard
+          </h1>
+          <p className="text-sm text-yellow-200 mt-2">
+            Choose how many weekly activities complete each category goal.
+          </p>
+        </div>
+
         <button
           onClick={handleManualRefresh}
           disabled={isLoading}
@@ -273,10 +307,32 @@ const Dashboard = ({
               </div>
 
               <div className="mb-4">
+                <div className="flex flex-col items-center gap-2 mb-4 text-sm text-yellow-200">
+                  <label className="w-full flex flex-col items-start">
+                    Goal:
+                    <select
+                      value={cat.goal}
+                      onChange={(event) =>
+                        setCategoryGoals((currentGoals) => ({
+                          ...currentGoals,
+                          [cat.key]: Number(event.target.value),
+                        }))
+                      }
+                      className="mt-1 w-full rounded-lg border border-yellow-400 bg-black/70 text-white px-3 py-2 outline-none"
+                    >
+                      {GOAL_OPTIONS.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
                 <MosaicReveal
                   imageSrc={cat.image}
-                  filledSquares={progress}
-                  gridSize={4}
+                  filledSquares={cat.total}
+                  completionGoal={cat.goal}
+                  gridSize={cat.gridSize}
                 />
               </div>
 
@@ -314,7 +370,7 @@ const Dashboard = ({
             <div className="text-3xl font-bold text-yellow-400">
               {Math.round(
                 (totalActions /
-                  HABIT_CATEGORIES.reduce((sum, cat) => sum + cat.goal, 0)) *
+                  categories.reduce((sum, cat) => sum + cat.goal, 0)) *
                   100,
               )}
               %

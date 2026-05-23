@@ -4,26 +4,33 @@ import beehive from "../assets/beehive.png"; // Adjust the path as necessary
 const MosaicReveal = ({
   imageSrc,
   filledSquares = 0,
+  completionGoal,
   onComplete,
   gridSize = 4,
 }) => {
   const [revealedSquares, setRevealedSquares] = useState([]);
+  const [hasCompleted, setHasCompleted] = useState(false);
   const totalSquares = gridSize * gridSize;
-  const showFullImage = filledSquares >= 16;
+  const normalizedCompletionGoal = completionGoal ?? totalSquares;
+  const showFullImage = filledSquares >= normalizedCompletionGoal;
 
   useEffect(() => {
-    // Update revealed squares based on filledSquares prop
+    const visibleCount = Math.max(0, Math.min(filledSquares, totalSquares));
     const newRevealedSquares = [];
-    for (let i = 0; i < Math.min(filledSquares, totalSquares); i++) {
+    for (let i = 0; i < visibleCount; i++) {
       newRevealedSquares.push(i);
     }
     setRevealedSquares(newRevealedSquares);
 
-    // Call onComplete when all squares are filled
-    if (filledSquares >= totalSquares && onComplete) {
+    if (filledSquares >= normalizedCompletionGoal && onComplete && !hasCompleted) {
+      setHasCompleted(true);
       setTimeout(onComplete);
     }
-  }, [filledSquares, totalSquares, onComplete]);
+
+    if (filledSquares < normalizedCompletionGoal && hasCompleted) {
+      setHasCompleted(false);
+    }
+  }, [filledSquares, normalizedCompletionGoal, totalSquares, onComplete, hasCompleted]);
 
   const getSquareStyle = (index) => {
     const isRevealed = revealedSquares.includes(index);
@@ -68,6 +75,13 @@ const MosaicReveal = ({
             aspectRatio: "1/1",
           }}
         />
+
+        <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-sm">
+          {Math.min(Math.max(filledSquares, 0), normalizedCompletionGoal)}/{normalizedCompletionGoal}
+        </div>
+        <div className="absolute top-2 right-2 bg-blue-600/90 text-white px-2 py-1 rounded text-xs">
+          Goal reached!
+        </div>
       </div>
     );
   }
@@ -103,14 +117,8 @@ const MosaicReveal = ({
 
       {/* Progress indicator */}
       <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-sm">
-        {filledSquares}/{totalSquares}
+        {Math.min(Math.max(filledSquares, 0), normalizedCompletionGoal)}/{normalizedCompletionGoal}
       </div>
-      {/* Completion count indicator */}
-      {filledSquares === totalSquares && (
-        <div className="absolute top-2 right-2 bg-blue-600/90 text-white px-2 py-1 rounded text-xs">
-          {filledSquares}/16
-        </div>
-      )}
     </div>
   );
 };
