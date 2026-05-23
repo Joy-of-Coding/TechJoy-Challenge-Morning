@@ -83,6 +83,42 @@ export const clearAllEntries = () => {
   clearMentalHealthEntries();
 };
 
+// Per-category session block goals
+const GOALS_KEY = "habit-hive-category-goals";
+const DEFAULT_GOALS = { coding: 16, physical: 16, mental: 16 };
+
+export const saveGoals = (goals) => {
+  try {
+    localStorage.setItem(GOALS_KEY, JSON.stringify(goals));
+  } catch (error) {
+    console.error("Failed to save goals to localStorage:", error);
+  }
+};
+
+// Reveal style preference
+const REVEAL_STYLE_KEY = "habit-hive-reveal-style";
+
+export const saveRevealStyle = (style) => {
+  try {
+    localStorage.setItem(REVEAL_STYLE_KEY, style);
+  } catch (error) {
+    console.error("Failed to save reveal style:", error);
+  }
+};
+
+export const loadRevealStyle = () =>
+  localStorage.getItem(REVEAL_STYLE_KEY) || "grid";
+
+export const loadGoals = () => {
+  try {
+    const stored = localStorage.getItem(GOALS_KEY);
+    return stored ? { ...DEFAULT_GOALS, ...JSON.parse(stored) } : { ...DEFAULT_GOALS };
+  } catch (error) {
+    console.error("Failed to load goals from localStorage:", error);
+    return { ...DEFAULT_GOALS };
+  }
+};
+
 // Get storage stats
 export const getStorageStats = () => {
   const stats = {};

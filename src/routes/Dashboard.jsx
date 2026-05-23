@@ -1,30 +1,23 @@
 import React from "react";
 import MosaicReveal from "../components/MosaicReveal";
+import PizzaReveal from "../components/PizzaReveal";
+import VoronoiReveal from "../components/VoronoiReveal";
 import WelcomeLanding from "../components/WelcomeLanding";
 import programmingBee from "../assets/programmingBee.jpg";
 import flashdanceBee from "../assets/flashdanceBee.jpg";
 import meditatingBee from "../assets/meditatingBee.jpg";
-import { loadAllEntries } from "../utils/localStorage";
+import { loadAllEntries, loadGoals, saveGoals, loadRevealStyle, saveRevealStyle } from "../utils/localStorage";
+
+const STYLE_OPTIONS = [
+  { id: "grid",    label: "Grid"   },
+  { id: "pizza",   label: "Pizza"  },
+  { id: "voronoi", label: "Puzzle" },
+];
 
 const HABIT_CATEGORIES = [
-  {
-    name: "Coding",
-    key: "coding",
-    image: programmingBee,
-    goal: 16,
-  },
-  {
-    name: "Physical Health",
-    key: "physical",
-    image: flashdanceBee,
-    goal: 16,
-  },
-  {
-    name: "Mental Health",
-    key: "mental",
-    image: meditatingBee,
-    goal: 16,
-  },
+  { name: "Coding", key: "coding", image: programmingBee },
+  { name: "Physical Health", key: "physical", image: flashdanceBee },
+  { name: "Mental Health", key: "mental", image: meditatingBee },
 ];
 
 // FIXED: Regular function (React.memo is for components, not functions)
@@ -109,6 +102,21 @@ const Dashboard = ({
   const [habitData, setHabitData] = React.useState(() => getHabitData());
   const [recentActivity, setRecentActivity] = React.useState([]);
   const [isLoading, setIsLoading] = React.useState(false);
+  const [goals, setGoals] = React.useState(() => loadGoals());
+  const [revealStyle, setRevealStyle] = React.useState(() => loadRevealStyle());
+
+  const handleGoalChange = React.useCallback((key, newGoal) => {
+    setGoals((prev) => {
+      const updated = { ...prev, [key]: newGoal };
+      saveGoals(updated);
+      return updated;
+    });
+  }, []);
+
+  const handleStyleChange = React.useCallback((style) => {
+    setRevealStyle(style);
+    saveRevealStyle(style);
+  }, []);
 
   // OPTIMIZED: Memoized update function to prevent unnecessary re-creations
   const updateHabitData = React.useCallback(() => {
@@ -215,10 +223,11 @@ const Dashboard = ({
       const total = getSevenDayTotal(habitData[cat.key]);
       return {
         ...cat,
-        total: total,
+        total,
+        goal: goals[cat.key],
       };
     });
-  }, [habitData]);
+  }, [habitData, goals]);
 
   const totalActions = React.useMemo(() => {
     const total = sevenDayTotals.reduce((sum, cat) => sum + cat.total, 0);
@@ -249,7 +258,24 @@ const Dashboard = ({
         </button>
       </div>
 
-      {/* Category Sections with MosaicReveal */}
+      {/* Reveal style selector */}
+      <div className="flex justify-center gap-3 mb-6">
+        {STYLE_OPTIONS.map((s) => (
+          <button
+            key={s.id}
+            onClick={() => handleStyleChange(s.id)}
+            className={`px-5 py-2 rounded-lg font-bold text-sm transition-colors ${
+              revealStyle === s.id
+                ? "bg-yellow-400 text-black"
+                : "border border-yellow-400 text-yellow-400 hover:bg-yellow-400 hover:text-black"
+            }`}
+          >
+            {s.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Category Sections */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
         {sevenDayTotals.map((cat) => {
           const progress = Math.min(cat.total, cat.goal);
@@ -265,19 +291,34 @@ const Dashboard = ({
                   {cat.name}
                 </h2>
                 <div className="flex justify-between items-center text-sm text-yellow-200">
-                  <span>
-                    Progress: {cat.total}/{cat.goal}
-                  </span>
+                  <span>Progress: {cat.total}/{cat.goal}</span>
                   <span>{percentage}%</span>
                 </div>
               </div>
 
               <div className="mb-4">
-                <MosaicReveal
-                  imageSrc={cat.image}
-                  filledSquares={progress}
-                  gridSize={4}
-                />
+                {revealStyle === "grid" && (
+                  <MosaicReveal
+                    imageSrc={cat.image}
+                    filledSquares={progress}
+                    gridSize={Math.ceil(Math.sqrt(cat.goal))}
+                    goal={cat.goal}
+                  />
+                )}
+                {revealStyle === "pizza" && (
+                  <PizzaReveal
+                    imageSrc={cat.image}
+                    filledSquares={progress}
+                    goal={cat.goal}
+                  />
+                )}
+                {revealStyle === "voronoi" && (
+                  <VoronoiReveal
+                    imageSrc={cat.image}
+                    filledSquares={progress}
+                    goal={cat.goal}
+                  />
+                )}
               </div>
 
               <div className="text-center">
@@ -292,6 +333,25 @@ const Dashboard = ({
                     ? "Goal achieved! 🎉"
                     : `${cat.goal - cat.total} more to reach your goal`}
                 </p>
+              </div>
+
+              <div className="mt-4">
+                <div className="flex justify-between text-xs text-yellow-400 mb-1">
+                  <span>Session blocks</span>
+                  <span className="font-bold">{cat.goal}</span>
+                </div>
+                <input
+                  type="range"
+                  min={4}
+                  max={16}
+                  value={cat.goal}
+                  onChange={(e) => handleGoalChange(cat.key, Number(e.target.value))}
+                  className="w-full accent-yellow-400"
+                />
+                <div className="flex justify-between text-xs text-yellow-700 mt-1">
+                  <span>4</span>
+                  <span>16</span>
+                </div>
               </div>
             </div>
           );
@@ -314,7 +374,7 @@ const Dashboard = ({
             <div className="text-3xl font-bold text-yellow-400">
               {Math.round(
                 (totalActions /
-                  HABIT_CATEGORIES.reduce((sum, cat) => sum + cat.goal, 0)) *
+                  sevenDayTotals.reduce((sum, cat) => sum + cat.goal, 0)) *
                   100,
               )}
               %

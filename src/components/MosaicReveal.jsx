@@ -6,24 +6,24 @@ const MosaicReveal = ({
   filledSquares = 0,
   onComplete,
   gridSize = 4,
+  goal,
 }) => {
   const [revealedSquares, setRevealedSquares] = useState([]);
   const totalSquares = gridSize * gridSize;
-  const showFullImage = filledSquares >= 16;
+  const completionTarget = goal ?? totalSquares;
+  const showFullImage = filledSquares >= completionTarget;
 
   useEffect(() => {
-    // Update revealed squares based on filledSquares prop
     const newRevealedSquares = [];
     for (let i = 0; i < Math.min(filledSquares, totalSquares); i++) {
       newRevealedSquares.push(i);
     }
     setRevealedSquares(newRevealedSquares);
 
-    // Call onComplete when all squares are filled
-    if (filledSquares >= totalSquares && onComplete) {
+    if (filledSquares >= completionTarget && onComplete) {
       setTimeout(onComplete);
     }
-  }, [filledSquares, totalSquares, onComplete]);
+  }, [filledSquares, totalSquares, completionTarget, onComplete]);
 
   const getSquareStyle = (index) => {
     const isRevealed = revealedSquares.includes(index);
@@ -103,12 +103,12 @@ const MosaicReveal = ({
 
       {/* Progress indicator */}
       <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-sm">
-        {filledSquares}/{totalSquares}
+        {filledSquares}/{completionTarget}
       </div>
       {/* Completion count indicator */}
-      {filledSquares === totalSquares && (
+      {filledSquares === completionTarget && (
         <div className="absolute top-2 right-2 bg-blue-600/90 text-white px-2 py-1 rounded text-xs">
-          {filledSquares}/16
+          {filledSquares}/{completionTarget}
         </div>
       )}
     </div>
