@@ -6,28 +6,28 @@ import flashdanceBee from "../assets/flashdanceBee.jpg";
 import meditatingBee from "../assets/meditatingBee.jpg";
 import { loadAllEntries } from "../utils/localStorage";
 
-const HABIT_CATEGORIES = [
+// Kept as base configuration without the static goal
+const INITIAL_CATEGORIES = [
   {
     name: "Coding",
     key: "coding",
     image: programmingBee,
-    goal: 16,
   },
   {
     name: "Physical Health",
     key: "physical",
     image: flashdanceBee,
-    goal: 16,
   },
   {
     name: "Mental Health",
     key: "mental",
     image: meditatingBee,
-    goal: 16,
   },
 ];
 
-// FIXED: Regular function (React.memo is for components, not functions)
+// Helper array to generate the allowed goals [4, 6, 8, 10, 12, 14, 16]
+const ALLOWED_GOALS = [4, 6, 8, 10, 12, 14, 16];
+
 const getHabitData = () => {
   try {
     const allEntries = loadAllEntries();
@@ -38,11 +38,7 @@ const getHabitData = () => {
     };
   } catch (e) {
     console.error("Error loading habit data:", e);
-    return {
-      coding: [],
-      physical: [],
-      mental: [],
-    };
+    return { coding: [], physical: [], mental: [] };
   }
 };
 
@@ -63,7 +59,6 @@ const getRecentActivity = () => {
     const allEntries = loadAllEntries();
     const activities = [];
 
-    // Add activities from all categories
     allEntries.coding.forEach((entry) => {
       activities.push({
         category: "Coding",
@@ -91,10 +86,7 @@ const getRecentActivity = () => {
       });
     });
 
-    const result = activities
-      .sort((a, b) => b.timestamp - a.timestamp)
-      .slice(0, 10);
-    return result;
+    return activities.sort((a, b) => b.timestamp - a.timestamp).slice(0, 10);
   } catch (error) {
     console.error("Error getting recent activity:", error);
     return [];
@@ -105,20 +97,32 @@ const Dashboard = ({
   entries = [],
   physicalEntries = [],
   mentalEntries = [],
+  sessionLimit = 4, // <-- dw -- Add here with a fallback default
 }) => {
   const [habitData, setHabitData] = React.useState(() => getHabitData());
   const [recentActivity, setRecentActivity] = React.useState([]);
   const [isLoading, setIsLoading] = React.useState(false);
+// dw - Initialize goals state dynamically using the passed prop 4 or 16 sessions
+  const [categoryGoals, setCategoryGoals] = React.useState({
+    coding: sessionLimit,
+    physical: sessionLimit,
+    mental: sessionLimit,
+  });
 
-  // OPTIMIZED: Memoized update function to prevent unnecessary re-creations
+  // dw must comment out of going to have selectable goals of 4 or 16
+  // Dynamic goals state initialized to 16 for each category mapping
+  //const [categoryGoals, setCategoryGoals] = React.useState({
+  //  coding: 16,
+  //  physical: 16,
+  //  mental: 16,
+  //});
+
   const updateHabitData = React.useCallback(() => {
-    if (isLoading) return; // Prevent multiple simultaneous updates
-
+    if (isLoading) return;
     setIsLoading(true);
     try {
       const newData = getHabitData();
       const activity = getRecentActivity();
-
       setHabitData(newData);
       setRecentActivity(activity);
     } catch (error) {
@@ -128,33 +132,42 @@ const Dashboard = ({
     }
   }, [isLoading]);
 
-  // OPTIMIZED: Manual refresh only - removed aggressive polling
   const handleManualRefresh = React.useCallback(() => {
     updateHabitData();
   }, [updateHabitData]);
 
-  // Listen for storage events from other tabs
+  // Handler to safely update a category goal when selected
+  const handleGoalChange = (categoryKey, newGoal) => {
+    setCategoryGoals((prev) => ({
+      ...prev,
+      [categoryKey]: parseInt(newGoal, 10),
+    }));
+  };
+
   React.useEffect(() => {
     const onStorage = () => updateHabitData();
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
   }, [updateHabitData]);
 
-  // Listen for custom habit update events
   React.useEffect(() => {
     const onCustomStorage = () => updateHabitData();
     window.addEventListener("habitDataUpdated", onCustomStorage);
-    return () =>
-      window.removeEventListener("habitDataUpdated", onCustomStorage);
+    return () => window.removeEventListener("habitDataUpdated", onCustomStorage);
   }, [updateHabitData]);
 
-  // OPTIMIZED: Only update when props actually change, with deep comparison
+  // dw Keep the state updated if the prop changes while Dashboard is mounted
+  React.useEffect(() => {
+    setCategoryGoals({
+      coding: sessionLimit,
+      physical: sessionLimit,
+      mental: sessionLimit,
+    });
+  }, [sessionLimit]);
+
   const propsDataString = React.useMemo(() => {
     return JSON.stringify({
-      entries: entries.map((e) => ({
-        date: e.date,
-        value: e.value || e.hours,
-      })),
+      entries: entries.map((e) => ({ date: e.date, value: e.value || e.hours })),
       physical: physicalEntries.map((e) => ({ date: e.date, value: e.value })),
       mental: mentalEntries.map((e) => ({ date: e.date, value: e.value })),
     });
@@ -162,70 +175,94 @@ const Dashboard = ({
 
   React.useEffect(() => {
     const updatedData = {
-      coding: entries.map((entry) => entry.date),
-      physical: physicalEntries.map((entry) => entry.date),
-      mental: mentalEntries.map((entry) => entry.date),
+   // dw these are commented out to allow all trackers, you need to 
+   //   apply .slice(0, sessionLimit) to the entries inside your 
+   //   useEffect blocks before they get grouped or sent to the state.
+   //
+   //   coding: entries.map((entry) => entry.date),
+   //   physical: physicalEntries.map((entry) => entry.date),
+   //   mental: mentalEntries.map((entry) => entry.date),
+    //  dw -Fix: Limit the raw dates mapped into habitData
+    coding: entries.slice(0, sessionLimit).map((entry) => entry.date),
+    physical: physicalEntries.slice(0, sessionLimit).map((entry) => entry.date),
+    mental: mentalEntries.slice(0, sessionLimit).map((entry) => entry.date),
     };
 
     const activities = [];
+  //
+  // dw deprecated - this code is for a fixed value of 16 sessions
+  //  entries.forEach((entry) => {
+  //    activities.push({
+  //      category: "Coding",
+  //      details: `${entry.value || entry.hours || 0}h session`,
+  //      date: entry.date,
+  //      timestamp: new Date(entry.date).getTime(),
+  ///    });
+  //  });
+  //
 
-    entries.forEach((entry) => {
-      activities.push({
-        category: "Coding",
-        details: `${entry.value || entry.hours || 0}h session`,
-        date: entry.date,
-        timestamp: new Date(entry.date).getTime(),
-      });
+  //
+  // dw Fix: Limit the tracking history for the recent activities log table
+  entries.slice(0, sessionLimit).forEach((entry) => {
+    activities.push({
+      category: "Coding",
+      details: `${entry.value || entry.hours || 0}h session`,
+      date: entry.date,
+      timestamp: new Date(entry.date).getTime(),
     });
+  });
 
-    physicalEntries.forEach((entry) => {
-      activities.push({
-        category: "Physical Health",
-        details: `${entry.value || 0}h activity`,
-        date: entry.date,
-        timestamp: new Date(entry.date).getTime(),
-      });
+  physicalEntries.slice(0, sessionLimit).forEach((entry) => {
+    activities.push({
+      category: "Physical Health",
+      details: `${entry.value || 0}h activity`,
+      date: entry.date,
+      timestamp: new Date(entry.date).getTime(),
     });
+  });
 
-    mentalEntries.forEach((entry) => {
-      activities.push({
-        category: "Mental Health",
-        details: `${entry.value || 0}h session`,
-        date: entry.date,
-        timestamp: new Date(entry.date).getTime(),
-      });
+  mentalEntries.slice(0, sessionLimit).forEach((entry) => {
+    activities.push({
+      category: "Mental Health",
+      details: `${entry.value || 0}h session`,
+      date: entry.date,
+      timestamp: new Date(entry.date).getTime(),
     });
+  });
 
-    const sortedActivities = activities
-      .sort((a, b) => b.timestamp - a.timestamp)
-      .slice(0, 10);
+  setHabitData(updatedData);
+  setRecentActivity(activities.sort((a, b) => b.timestamp - a.timestamp).slice(0, 10));
+}, [propsDataString, sessionLimit]); // Added sessionLimit to dependency array
 
-    setHabitData(updatedData);
-    setRecentActivity(sortedActivities);
-  }, [propsDataString]); // OPTIMIZED: Only re-run when stringified props actually change
-
-  // OPTIMIZED: Initial load only, no polling
+  //
+  //  dw end of varlable session fix
+  // 
+  
+  
   React.useEffect(() => {
     updateHabitData();
-  }, []); // Empty dependency array - only run once on mount
+  }, []);
 
-  // OPTIMIZED: Memoized calculations to prevent unnecessary re-renders
+  // Recalculates totals using state-driven `categoryGoals` instead of static constants
   const sevenDayTotals = React.useMemo(() => {
-    return HABIT_CATEGORIES.map((cat) => {
+    return INITIAL_CATEGORIES.map((cat) => {
       const total = getSevenDayTotal(habitData[cat.key]);
       return {
         ...cat,
+        goal: categoryGoals[cat.key],
         total: total,
       };
     });
-  }, [habitData]);
+  }, [habitData, categoryGoals]);
 
   const totalActions = React.useMemo(() => {
-    const total = sevenDayTotals.reduce((sum, cat) => sum + cat.total, 0);
-    return total;
+    return sevenDayTotals.reduce((sum, cat) => sum + cat.total, 0);
   }, [sevenDayTotals]);
 
-  // Show welcome landing page if no progress
+  const totalPossibleGoal = React.useMemo(() => {
+    return sevenDayTotals.reduce((sum, cat) => sum + cat.goal, 0);
+  }, [sevenDayTotals]);
+
   if (totalActions === 0) {
     return <WelcomeLanding />;
   }
@@ -233,9 +270,7 @@ const Dashboard = ({
   return (
     <div className="p-4 max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-yellow-400">
-          Your Habit Dashboard
-        </h1>
+        <h1 className="text-3xl font-bold text-yellow-400">Your Habit Dashboard</h1>
         <button
           onClick={handleManualRefresh}
           disabled={isLoading}
@@ -254,20 +289,42 @@ const Dashboard = ({
         {sevenDayTotals.map((cat) => {
           const progress = Math.min(cat.total, cat.goal);
           const percentage = Math.round((progress / cat.goal) * 100);
+          
+          // Dynamically compute grid size. E.g., a goal of 16 yields a 4x4 grid layout.
+          // Fallback dynamically adjusts if MosaicReveal depends purely on strict dimensions.
+          const computedGridSize = Math.ceil(Math.sqrt(cat.goal));
 
           return (
             <div
               key={cat.key}
-              className="bg-black border-2 border-yellow-400 rounded-lg p-6 shadow-lg"
+              className="bg-black border-2 border-yellow-400 rounded-lg p-6 shadow-lg flex flex-col justify-between"
             >
               <div className="text-center mb-4">
-                <h2 className="text-2xl font-bold text-yellow-400 mb-2">
-                  {cat.name}
-                </h2>
-                <div className="flex justify-between items-center text-sm text-yellow-200">
-                  <span>
-                    Progress: {cat.total}/{cat.goal}
-                  </span>
+                <div className="flex justify-between items-start mb-2">
+                  <h2 className="text-2xl font-bold text-yellow-400">{cat.name}</h2>
+                  
+                  {/* Goal Dropdown Selector */}
+                  <div className="flex flex-col items-end">
+                    <label htmlFor={`goal-${cat.key}`} className="text-xs text-yellow-500 mb-1">
+                      Target
+                    </label>
+                    <select
+                      id={`goal-${cat.key}`}
+                      value={cat.goal}
+                      onChange={(e) => handleGoalChange(cat.key, e.target.value)}
+                      className="bg-zinc-900 border border-yellow-400 text-yellow-400 text-xs rounded-md p-1 focus:outline-none focus:ring-1 focus:ring-yellow-300"
+                    >
+                      {ALLOWED_GOALS.map((num) => (
+                        <option key={num} value={num}>
+                          {num} Days
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center text-sm text-yellow-200 mt-4">
+                  <span>Progress: {cat.total}/{cat.goal}</span>
                   <span>{percentage}%</span>
                 </div>
               </div>
@@ -276,7 +333,7 @@ const Dashboard = ({
                 <MosaicReveal
                   imageSrc={cat.image}
                   filledSquares={progress}
-                  gridSize={4}
+                  gridSize={computedGridSize}
                 />
               </div>
 
@@ -305,19 +362,12 @@ const Dashboard = ({
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="text-center">
-            <div className="text-3xl font-bold text-yellow-400">
-              {totalActions}
-            </div>
+            <div className="text-3xl font-bold text-yellow-400">{totalActions}</div>
             <div className="text-yellow-200">Total Actions</div>
           </div>
           <div className="text-center">
             <div className="text-3xl font-bold text-yellow-400">
-              {Math.round(
-                (totalActions /
-                  HABIT_CATEGORIES.reduce((sum, cat) => sum + cat.goal, 0)) *
-                  100,
-              )}
-              %
+              {totalPossibleGoal > 0 ? Math.round((totalActions / totalPossibleGoal) * 100) : 0}%
             </div>
             <div className="text-yellow-200">Overall Progress</div>
           </div>
@@ -332,30 +382,19 @@ const Dashboard = ({
 
       {/* Recent Activity */}
       <div className="bg-black border-2 border-yellow-400 rounded-lg p-6">
-        <h2 className="text-xl font-semibold mb-4 text-yellow-300">
-          Recent Activity
-        </h2>
+        <h2 className="text-xl font-semibold mb-4 text-yellow-300">Recent Activity</h2>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr>
-                <th className="p-2 text-left border-b border-yellow-400 text-yellow-300">
-                  Category
-                </th>
-                <th className="p-2 text-left border-b border-yellow-400 text-yellow-300">
-                  Details
-                </th>
-                <th className="p-2 text-left border-b border-yellow-400 text-yellow-300">
-                  Date
-                </th>
+                <th className="p-2 text-left border-b border-yellow-400 text-yellow-300">Category</th>
+                <th className="p-2 text-left border-b border-yellow-400 text-yellow-300">Details</th>
+                <th className="p-2 text-left border-b border-yellow-400 text-yellow-300">Date</th>
               </tr>
             </thead>
             <tbody>
               {recentActivity.map((activity, idx) => (
-                <tr
-                  key={`activity-${idx}`}
-                  className="border-b border-yellow-900"
-                >
+                <tr key={`activity-${idx}`} className="border-b border-yellow-900">
                   <td className="p-2 text-yellow-200">{activity.category}</td>
                   <td className="p-2 text-white">{activity.details}</td>
                   <td className="p-2 text-white">
@@ -363,7 +402,6 @@ const Dashboard = ({
                   </td>
                 </tr>
               ))}
-
               {recentActivity.length === 0 && (
                 <tr>
                   <td colSpan={3} className="p-4 text-center text-yellow-500">

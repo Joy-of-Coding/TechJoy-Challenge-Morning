@@ -27,11 +27,26 @@ const AchievementPage = ({
   entries = [],
   physicalEntries = [],
   mentalEntries = [],
+  sessionLimit = 4,     // <-- dw - defal tlimit to 4  
+  setSessionLimit,  // <-- dw - limit to 4 or 16 sessions - Add here
 }) => {
   const [timeframe, setTimeframe] = useState("week"); // week, month, year
   const [achievementData, setAchievementData] = useState({});
   const [selectedCategory, setSelectedCategory] = useState("coding"); // coding, physical, mental
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+// dw Immediate debug logging
+  console.log("AchievementPage Props:", {
+    entriesLength: entries.length,
+    physicalEntriesLength: physicalEntries.length,
+    mentalEntriesLength: mentalEntries.length,
+    entries: entries,
+    physicalEntries: physicalEntries,
+    mentalEntries: mentalEntries,
+  });
+
+// dw - to limit the choices to 4 or 16 sessions: 
+//  const [sessionLimit, setSessionLimit] = useState(4); // 4 or 16
 
   // Immediate debug logging
   console.log("AchievementPage Props:", {
@@ -48,8 +63,13 @@ const AchievementPage = ({
     const calculateAchievements = () => {
       const now = new Date();
       let startDate = new Date();
-
-      switch (timeframe) {
+//
+//  dw Find this section inside the calculateAchievements function in AchievementPage.jsx:
+//   dw  Filter entries within the timeframe
+//
+//  dw moved switch here per AI recommendeation
+//      
+    switch (timeframe) {
         case "week":
           startDate.setDate(now.getDate() - 7);
           break;
@@ -61,9 +81,9 @@ const AchievementPage = ({
           break;
         default:
           startDate.setDate(now.getDate() - 7);
-      }
+      } 
 
-      // Get the appropriate entries based on selected category
+// Get the appropriate entries based on selected category
       let currentEntries = [];
       switch (selectedCategory) {
         case "coding":
@@ -88,22 +108,42 @@ const AchievementPage = ({
         endDate: now.toDateString(),
       });
 
-      // Filter entries within the timeframe
-      const filteredEntries = currentEntries.filter((entry) => {
-        const entryDate = new Date(entry.date);
-        return entryDate >= startDate && entryDate <= now;
+      //
+      //  dw trying to fix blank page 10 PM 
+      //
+      const unfilteredTimeframeEntries = currentEntries.filter((entry) => {
+      const entryDate = new Date(entry.date);
+      return entryDate >= startDate && entryDate <= now;
       });
+
+      // dw -Fix: new place add 9 PM - Slice the timeframe entries array down to the user-selected session limit
+      // did not solve the blank page problem!
+      const filteredEntries = unfilteredTimeframeEntries.slice(0, sessionLimit);
 
       console.log(`Filtered entries for ${selectedCategory}:`, filteredEntries);
 
-      // Calculate statistics
-      let totalHours, totalSessions, averageHours;
+    // dw - 5. Safely declare variables and compute math statistics
+      const totalHours = filteredEntries.reduce((sum, entry) => sum + (entry.value || 0), 0); 
+      const rawSessions = filteredEntries.length;
+      const totalSessions = Math.min(rawSessions, sessionLimit);  
 
-      // All trackers now use 'value' field (coding, physical, mental)
-      totalHours = filteredEntries.reduce((sum, entry) => sum + entry.value, 0);
-      totalSessions = filteredEntries.length;
-      averageHours =
+           //
+      // between 4 and 16 inclusiveMath.max(4, Math.min(16, rawSessions));
+      // dw commented out:  totalSessions = filteredEntries.length;
+      //end of dw added code
+      //   
+      const averageHours =
         totalSessions > 0 ? (totalHours / totalSessions).toFixed(1) : 0;
+
+      // dw  Calculate statistics
+      //let totalHours, totalSessions, averageHours;
+      //let totalSessions,averageHours; 
+      // dw -All trackers now use 'value' field (coding, physical, mental)
+      //totalHours = filteredEntries.reduce((sum, entry) => sum + entry.value, 0); 
+      // - dw  You can now clean this up safely since filteredEntries length is 
+      //        already restricted:
+      //totalSessions = filteredEntries.length;
+
       // Group by day for chart data
       const dailyData = {};
       filteredEntries.forEach((entry) => {
@@ -127,25 +167,24 @@ const AchievementPage = ({
         month: { hours: 160, sessions: 30 },
         year: { hours: 1920, sessions: 365 },
       };
-
-      const currentGoal = goals[timeframe];
+ 
+const currentGoal = goals[timeframe];
       const hoursProgress = Math.min(
         (totalHours / currentGoal.hours) * 100,
-        100,
+        100
       );
       const sessionsProgress = Math.min(
         (totalSessions / currentGoal.sessions) * 100,
-        100,
+        100
       );
+      
 
-      // Achievement badges
+// Achievement badges
       const achievements = [];
-      if (totalHours >= currentGoal.hours * 0.5)
-        achievements.push("Halfway Hero");
+      if (totalHours >= currentGoal.hours * 0.5) achievements.push("Halfway Hero");
       if (totalHours >= currentGoal.hours) achievements.push("Goal Crusher");
-      if (totalSessions >= currentGoal.sessions * 0.8)
-        achievements.push("Consistency King");
-      if (averageHours >= 2) achievements.push("Deep Diver");
+      if (totalSessions >= currentGoal.sessions * 0.8) achievements.push("Consistency King");
+      if (Number(averageHours) >= 2) achievements.push("Deep Diver");
       if (filteredEntries.length > 0) achievements.push("Getting Started");
 
       setAchievementData({
@@ -168,6 +207,7 @@ const AchievementPage = ({
     timeframe,
     selectedCategory,
     refreshTrigger,
+    sessionLimit    
   ]);
 
   // Listen for data updates from trackers
@@ -207,7 +247,7 @@ const AchievementPage = ({
       y: {
         ticks: {
           color: "#fbbf24",
-          stepSize: 1, // Ensure whole number steps for sessions
+          stepSize: 1, 
         },
         grid: {
           color: "#374151",
@@ -234,9 +274,7 @@ const AchievementPage = ({
     datasets: [
       {
         label: selectedCategory === "coding" ? "Sessions" : "Activities",
-        data:
-          achievementData.chartData?.map((item) => Math.round(item.sessions)) ||
-          [], // Ensure sessions are whole numbers
+        data: achievementData.chartData?.map((item) => Math.round(item.sessions)) || [], 
         borderColor: "#fbbf24",
         backgroundColor: "rgba(251, 191, 36, 0.1)",
         borderWidth: 3,
@@ -249,7 +287,6 @@ const AchievementPage = ({
     ],
   };
 
-  // Separate options for sessions chart to ensure whole numbers
   const sessionsChartOptions = {
     ...chartOptions,
     scales: {
@@ -260,7 +297,7 @@ const AchievementPage = ({
         ticks: {
           ...chartOptions.scales.y.ticks,
           callback: function (value) {
-            return Math.round(value); // Ensure only whole numbers are displayed
+            return Math.round(value); 
           },
         },
       },
@@ -287,7 +324,7 @@ const AchievementPage = ({
               onClick={() => {
                 if (
                   window.confirm(
-                    "Are you sure you want to clear all data? This will start fresh with no previous session data.",
+                    "Are you sure you want to clear all data? This will start fresh with no previous session data."
                   )
                 ) {
                   localStorage.removeItem("habit-hive-coding-entries");
@@ -305,7 +342,6 @@ const AchievementPage = ({
 
         {/* Category and Timeframe Selectors */}
         <div className="flex flex-col sm:flex-row justify-center gap-4 mb-8">
-          {/* Category Selector */}
           <div className="bg-gray-900 rounded-lg p-1 border border-yellow-400">
             {[
               { key: "coding", name: "Coding", icon: "💻" },
@@ -327,7 +363,6 @@ const AchievementPage = ({
             ))}
           </div>
 
-          {/* Timeframe Selector */}
           <div className="bg-gray-900 rounded-lg p-1 border border-yellow-400">
             {["week", "month", "year"].map((period) => (
               <button
@@ -345,6 +380,26 @@ const AchievementPage = ({
           </div>
         </div>
 
+        {/* Session Limit Selector */}
+        <div className="flex justify-center items-center gap-3 mb-8">
+          <span className="text-white font-semibold">Target Sessions:</span>
+          <div className="bg-gray-900 rounded-lg p-1 border border-yellow-400 inline-flex">
+            {[4, 16].map((limit) => (
+              <button
+                key={limit}
+                onClick={() => setSessionLimit && setSessionLimit(limit)}
+                className={`px-6 py-2 rounded-md font-semibold transition-colors duration-200 ${
+                  sessionLimit === limit
+                    ? "bg-yellow-400 text-black"
+                    : "text-yellow-400 hover:bg-yellow-900"
+                }`}
+              >
+                {limit} Sessions
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-gray-900 rounded-lg p-6 border border-yellow-400">
@@ -353,9 +408,7 @@ const AchievementPage = ({
                 {achievementData.totalHours || 0}
               </div>
               <div className="text-white">
-                {selectedCategory === "coding"
-                  ? "Total Hours"
-                  : "Total Duration"}
+                {selectedCategory === "coding" ? "Total Hours" : "Total Duration"}
               </div>
             </div>
           </div>
@@ -395,15 +448,11 @@ const AchievementPage = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div className="bg-gray-900 rounded-lg p-6 border border-yellow-400">
             <h3 className="text-xl font-bold mb-4">
-              {selectedCategory === "coding"
-                ? "Hours Progress"
-                : "Duration Progress"}
+              {selectedCategory === "coding" ? "Hours Progress" : "Duration Progress"}
             </h3>
             <div className="mb-2 flex justify-between text-sm">
               <span>
-                {achievementData.totalHours || 0} /{" "}
-                {achievementData.goal?.hours || 0}{" "}
-                {selectedCategory === "coding" ? "hours" : "hours"}
+                {achievementData.totalHours || 0} / {achievementData.goal?.hours || 0} hours
               </span>
               <span>{Math.round(achievementData.hoursProgress || 0)}%</span>
             </div>
@@ -416,14 +465,11 @@ const AchievementPage = ({
           </div>
           <div className="bg-gray-900 rounded-lg p-6 border border-yellow-400">
             <h3 className="text-xl font-bold mb-4">
-              {selectedCategory === "coding"
-                ? "Sessions Progress"
-                : "Activities Progress"}
+              {selectedCategory === "coding" ? "Sessions Progress" : "Activities Progress"}
             </h3>
             <div className="mb-2 flex justify-between text-sm">
               <span>
-                {achievementData.totalSessions || 0} /{" "}
-                {achievementData.goal?.sessions || 0}{" "}
+                {achievementData.totalSessions || 0} / {achievementData.goal?.sessions || 0}{" "}
                 {selectedCategory === "coding" ? "sessions" : "activities"}
               </span>
               <span>{Math.round(achievementData.sessionsProgress || 0)}%</span>
@@ -439,7 +485,6 @@ const AchievementPage = ({
 
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {/* Hours Chart */}
           <div className="bg-gray-900 rounded-lg p-6 border border-yellow-400">
             <h3 className="text-xl font-bold mb-4">
               {selectedCategory === "coding" ? "Daily Hours" : "Daily Duration"}
@@ -449,12 +494,9 @@ const AchievementPage = ({
             </div>
           </div>
 
-          {/* Sessions Chart */}
           <div className="bg-gray-900 rounded-lg p-6 border border-yellow-400">
             <h3 className="text-xl font-bold mb-4">
-              {selectedCategory === "coding"
-                ? "Daily Sessions"
-                : "Daily Activities"}
+              {selectedCategory === "coding" ? "Daily Sessions" : "Daily Activities"}
             </h3>
             <div className="h-80">
               <Line data={sessionsChartData} options={sessionsChartOptions} />
@@ -462,7 +504,7 @@ const AchievementPage = ({
           </div>
         </div>
 
-        {/* Achievements */}
+        {/* Achievements Section */}
         <div className="bg-gray-900 rounded-lg p-6 border border-yellow-400">
           <h3 className="text-xl font-bold mb-4">🏆 Achievements</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -471,16 +513,11 @@ const AchievementPage = ({
                 key={index}
                 className="bg-yellow-400/10 rounded-lg p-4 border border-yellow-400/30"
               >
-                <div className="text-yellow-400 font-semibold">
-                  {achievement}
-                </div>
-                <div className="text-white text-sm mt-1">
-                  Keep up the great work!
-                </div>
+                <div className="text-yellow-400 font-semibold">{achievement}</div>
+                <div className="text-white text-sm mt-1">Keep up the great work!</div>
               </div>
             ))}
-            {(!achievementData.achievements ||
-              achievementData.achievements.length === 0) && (
+            {(!achievementData.achievements || achievementData.achievements.length === 0) && (
               <div className="col-span-full text-center text-white py-8">
                 <div className="text-4xl mb-2">🎯</div>
                 <div>Start tracking your progress to earn achievements!</div>
@@ -494,8 +531,7 @@ const AchievementPage = ({
           <div className="text-center">
             <h3 className="text-2xl font-bold mb-4">💪 Keep Going!</h3>
             <p className="text-white text-lg">
-              Every coding session brings you closer to your goals. Consistency
-              is the key to mastery!
+              Every coding session brings you closer to your goals. Consistency is the key to mastery!
             </p>
           </div>
         </div>
@@ -504,4 +540,4 @@ const AchievementPage = ({
   );
 };
 
-export default AchievementPage;
+export default AchievementPage;      
