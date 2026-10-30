@@ -4,26 +4,27 @@ import WelcomeLanding from "../components/WelcomeLanding";
 import programmingBee from "../assets/programmingBee.jpg";
 import flashdanceBee from "../assets/flashdanceBee.jpg";
 import meditatingBee from "../assets/meditatingBee.jpg";
-import { loadAllEntries } from "../utils/localStorage";
+import {
+  loadAllEntries,
+  loadGridSizes,
+  saveGridSizes,
+} from "../utils/localStorage";
 
 const HABIT_CATEGORIES = [
   {
     name: "Coding",
     key: "coding",
     image: programmingBee,
-    goal: 16,
   },
   {
     name: "Physical Health",
     key: "physical",
     image: flashdanceBee,
-    goal: 16,
   },
   {
     name: "Mental Health",
     key: "mental",
     image: meditatingBee,
-    goal: 16,
   },
 ];
 
@@ -109,6 +110,9 @@ const Dashboard = ({
   const [habitData, setHabitData] = React.useState(() => getHabitData());
   const [recentActivity, setRecentActivity] = React.useState([]);
   const [isLoading, setIsLoading] = React.useState(false);
+  const [gridSizes, setGridSizes] = React.useState(loadGridSizes);
+
+  React.useEffect(() => saveGridSizes(gridSizes), [gridSizes]);
 
   // OPTIMIZED: Memoized update function to prevent unnecessary re-creations
   const updateHabitData = React.useCallback(() => {
@@ -216,9 +220,10 @@ const Dashboard = ({
       return {
         ...cat,
         total: total,
+        goal: gridSizes[cat.key] ** 2,
       };
     });
-  }, [habitData]);
+  }, [habitData, gridSizes]);
 
   const totalActions = React.useMemo(() => {
     const total = sevenDayTotals.reduce((sum, cat) => sum + cat.total, 0);
@@ -270,13 +275,25 @@ const Dashboard = ({
                   </span>
                   <span>{percentage}%</span>
                 </div>
+                <button
+                  onClick={() =>
+                    setGridSizes((sizes) => ({
+                      ...sizes,
+                      [cat.key]: sizes[cat.key] === 4 ? 2 : sizes[cat.key] + 1,
+                    }))
+                  }
+                  type="button"
+                  className="mt-10 px-3 py-1 rounded-lg bg-yellow-400 text-black text-sm font-bold hover:bg-yellow-300 transition"
+                >
+                  Change Grid Size ({gridSizes[cat.key]}×{gridSizes[cat.key]})
+                </button>
               </div>
 
               <div className="mb-4">
                 <MosaicReveal
                   imageSrc={cat.image}
                   filledSquares={progress}
-                  gridSize={4}
+                  gridSize={gridSizes[cat.key]}
                 />
               </div>
 
@@ -313,8 +330,11 @@ const Dashboard = ({
           <div className="text-center">
             <div className="text-3xl font-bold text-yellow-400">
               {Math.round(
-                (totalActions /
-                  HABIT_CATEGORIES.reduce((sum, cat) => sum + cat.goal, 0)) *
+                (sevenDayTotals.reduce(
+                  (sum, cat) => sum + Math.min(cat.total, cat.goal),
+                  0,
+                ) /
+                  sevenDayTotals.reduce((sum, cat) => sum + cat.goal, 0)) *
                   100,
               )}
               %
