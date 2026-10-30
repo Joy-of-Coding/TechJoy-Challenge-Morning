@@ -83,6 +83,28 @@ export const clearAllEntries = () => {
   clearMentalHealthEntries();
 };
 
+// Mosaic grid sizes chosen on the dashboard, keyed by dashboard category (coding/physical/mental)
+const GRID_SIZES_KEY = "habit-hive-grid-sizes";
+const DEFAULT_GRID_SIZES = { coding: 2, physical: 2, mental: 2 };
+
+export const loadGridSizes = () => {
+  try {
+    const stored = localStorage.getItem(GRID_SIZES_KEY);
+    return { ...DEFAULT_GRID_SIZES, ...(stored ? JSON.parse(stored) : {}) };
+  } catch (error) {
+    console.error("Failed to load grid sizes from localStorage:", error);
+    return DEFAULT_GRID_SIZES;
+  }
+};
+
+export const saveGridSizes = (sizes) => {
+  try {
+    localStorage.setItem(GRID_SIZES_KEY, JSON.stringify(sizes));
+  } catch (error) {
+    console.error("Failed to save grid sizes to localStorage:", error);
+  }
+};
+
 // Get storage stats
 export const getStorageStats = () => {
   const stats = {};

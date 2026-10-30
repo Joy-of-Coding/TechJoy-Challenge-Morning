@@ -1,5 +1,6 @@
 import { useState } from "react";
 import MosaicReveal from "./MosaicReveal";
+import { loadGridSizes } from "../utils/localStorage";
 
 const HabitTracker = ({
   entries,
@@ -9,10 +10,11 @@ const HabitTracker = ({
   entryLabel,
   placeholder,
   unit,
-  mosaicGridSize = 4,
+  gridSizeKey,
   inspoQuote,
   clearWarning = "Are you sure you want to clear all your data? This cannot be undone.",
 }) => {
+  const mosaicGridSize = loadGridSizes()[gridSizeKey];
   const [value, setValue] = useState("");
   const [showMosaic, setShowMosaic] = useState(false);
 
@@ -64,6 +66,13 @@ const HabitTracker = ({
   const averageValue =
     totalSessions > 0 ? (totalValue / totalSessions).toFixed(1) : 0;
 
+  // Mosaic fills with the last 7 days of entries, same window as the Dashboard
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const weeklySessions = entries.filter(
+    (entry) => new Date(entry.date) >= sevenDaysAgo,
+  ).length;
+
   return (
     <div className="min-h-screen /*bg-gradient-to-br from-black via-black to-yellow-400*/ text-yellow-400 font-montserrat">
       {/* Mosaic Progress Popup */}
@@ -98,7 +107,7 @@ const HabitTracker = ({
             </div>
             <MosaicReveal
               imageSrc={imageSrc}
-              filledSquares={entries.length}
+              filledSquares={weeklySessions}
               onComplete={() => setTimeout(() => setShowMosaic(false), 3000)}
               gridSize={mosaicGridSize}
             />

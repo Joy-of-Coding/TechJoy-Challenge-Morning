@@ -5,11 +5,11 @@ const MosaicReveal = ({
   imageSrc,
   filledSquares = 0,
   onComplete,
-  gridSize = 4,
+  gridSize = 3
 }) => {
   const [revealedSquares, setRevealedSquares] = useState([]);
   const totalSquares = gridSize * gridSize;
-  const showFullImage = filledSquares >= 16;
+  const showFullImage = filledSquares >= totalSquares
 
   useEffect(() => {
     // Update revealed squares based on filledSquares prop
@@ -32,7 +32,8 @@ const MosaicReveal = ({
       // Calculate the position of this square in the image
       const row = Math.floor(index / gridSize);
       const col = index % gridSize;
-      const sizePercent = 100 / gridSize;
+      // background-position % aligns image edge to box edge, so step is 100/(N-1)
+      const sizePercent = gridSize > 1 ? 100 / (gridSize - 1) : 0;
 
       return {
         backgroundImage: `url(${imageSrc})`,
@@ -108,7 +109,7 @@ const MosaicReveal = ({
       {/* Completion count indicator */}
       {filledSquares === totalSquares && (
         <div className="absolute top-2 right-2 bg-blue-600/90 text-white px-2 py-1 rounded text-xs">
-          {filledSquares}/16
+          {filledSquares}/{totalSquares}
         </div>
       )}
     </div>

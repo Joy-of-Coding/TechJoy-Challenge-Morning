@@ -87,16 +87,17 @@ describe("MosaicReveal", () => {
     const { container } = render(
       <MosaicReveal
         imageSrc={mockImageSrc}
-        filledSquares={16}
+        filledSquares={15}
         gridSize={gridSize}
       />,
     );
 
-    const squares = container.querySelectorAll(".bg-gray-800");
+    const squares = [...container.querySelectorAll(".bg-gray-800")].slice(0, 15);
+    expect(squares).toHaveLength(15);
     squares.forEach((square, index) => {
       const row = Math.floor(index / gridSize);
       const col = index % gridSize;
-      const sizePercent = 100 / gridSize;
+      const sizePercent = 100 / (gridSize - 1);
 
       expect(square).toHaveStyle({
         backgroundPosition: `${col * sizePercent}% ${row * sizePercent}%`,

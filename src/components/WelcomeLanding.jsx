@@ -21,18 +21,22 @@ const WelcomeLanding = () => {
             life.
           </p>
           <div className="flex justify-center gap-4 mb-8">
+
+            {/* GOES TO /CODING */}
             <Link
               to="/coding"
               className="px-8 py-3 bg-yellow-400 text-black font-bold rounded-lg hover:bg-yellow-300 transition-colors shadow-lg"
             >
               Start Tracking
             </Link>
+
             {/* <Link
               to="/"
               className="px-8 py-3 border-2 border-yellow-400 text-yellow-400 font-bold rounded-lg hover:bg-yellow-400 hover:text-black transition-colors"
             >
               View Dashboard
             </Link> */}
+
           </div>
         </div>
 
@@ -50,7 +54,8 @@ const WelcomeLanding = () => {
                 complete adds another honeycomb cell to your progress.
               </p>
               <p className="text-lg text-yellow-200 mb-4">
-                Our unique MosaicReveal system transforms your daily routines
+                Our unique, adaptable,
+                MosaicReveal system transforms your daily routines
                 into visual art. As you complete your habits, squares in your
                 personal mosaic gradually reveal stunning images, making
                 progress tracking both motivating and beautiful.
@@ -88,7 +93,7 @@ const WelcomeLanding = () => {
                 hours spent coding, debugging, or learning new technologies.
               </p>
               <div className="text-sm text-yellow-300 mb-4">
-                <strong>Goal:</strong> 16 sessions per week
+                <strong>Goal:</strong> At least 4 sessions per week
               </div>
               <div className="w-24 h-24 mx-auto mb-4">
                 <MosaicReveal
@@ -117,7 +122,7 @@ const WelcomeLanding = () => {
                 goals.
               </p>
               <div className="text-sm text-yellow-300 mb-4">
-                <strong>Goal:</strong> 16 activities per week
+                <strong>Goal:</strong> At least 4 activities per week
               </div>
               <div className="w-24 h-24 mx-auto mb-4">
                 <MosaicReveal
@@ -145,7 +150,7 @@ const WelcomeLanding = () => {
                 journaling, therapy sessions, or any self-care activities.
               </p>
               <div className="text-sm text-yellow-300 mb-4">
-                <strong>Goal:</strong> 16 activities per week
+                <strong>Goal:</strong> At least 4 activities per week
               </div>
               <div className="w-24 h-24 mx-auto mb-4">
                 <MosaicReveal
@@ -201,6 +206,12 @@ const WelcomeLanding = () => {
               </p>
             </div>
           </div>
+          <h2 className="text-2xl font-bold text-center mb-2 mt-5 text-yellow-400">
+            <em>
+              Note: the number of square can be changed; just click on the "Change grid size"
+              button on the Dashboard button when you make your first progress log!
+            </em>
+          </h2>
         </div>
 
         {/* Call to Action */}
